@@ -2060,3 +2060,123 @@ canvas { border-radius: var(--r-sm); }
 /* Page header text light */
 [data-theme="light"] .greeting { color: #1a1a1e; }
 [data-theme="light"] .greeting-sub { color: rgba(60,60,67,0.6); }
+
+
+/* ============================================================
+   LIGHT THEME SIDEBAR — forced override with !important
+   ============================================================ */
+html[data-theme="light"] .sidebar {
+  background: #ffffff !important;
+  border-right: 1px solid rgba(0,0,0,0.09) !important;
+}
+
+html[data-theme="light"] .user-card {
+  background: #f2f2f7 !important;
+  border: 1px solid rgba(0,0,0,0.08) !important;
+}
+
+html[data-theme="light"] .user-name { color: #1a1a1e !important; }
+html[data-theme="light"] .user-sub  { color: rgba(60,60,67,0.55) !important; }
+
+html[data-theme="light"] .app-logo { color: #1a1a1e !important; }
+html[data-theme="light"] .sidebar-close { color: rgba(60,60,67,0.45) !important; }
+
+html[data-theme="light"] .nav-group-label {
+  color: rgba(60,60,67,0.4) !important;
+}
+
+html[data-theme="light"] .nav-item {
+  color: rgba(60,60,67,0.7) !important;
+}
+html[data-theme="light"] .nav-item:hover {
+  background: rgba(0,0,0,0.05) !important;
+  color: #1a1a1e !important;
+}
+html[data-theme="light"] .nav-item.active {
+  background: rgba(0,122,255,0.1) !important;
+  color: #007aff !important;
+}
+html[data-theme="light"] .nav-item.active i,
+html[data-theme="light"] .nav-item.active svg { color: #007aff !important; }
+
+html[data-theme="light"] .nav-divider {
+  background: rgba(0,0,0,0.08) !important;
+}
+
+html[data-theme="light"] .sidebar-footer {
+  border-top: 1px solid rgba(0,0,0,0.08) !important;
+}
+
+html[data-theme="light"] .theme-toggle {
+  background: rgba(0,0,0,0.05) !important;
+  color: rgba(60,60,67,0.75) !important;
+  border: 1px solid rgba(0,0,0,0.08) !important;
+}
+
+/* Sidebar overlay light */
+html[data-theme="light"] .sidebar-overlay {
+  background: rgba(0,0,0,0.3) !important;
+}
+
+
+/* ============================================================
+   BOTTOM NAV — Fix all 5 items + light mode
+   ============================================================ */
+.bottom-nav {
+  overflow: visible !important;
+  gap: 0 !important;
+}
+
+.bn-item {
+  min-width: 0 !important;
+  flex: 1 1 0 !important;
+  padding: 0 2px !important;
+  overflow: hidden !important;
+}
+
+.bn-item span {
+  white-space: nowrap !important;
+  font-size: 8px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+
+/* Bottom nav light mode */
+html[data-theme="light"] .bottom-nav {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme="light"] .bn-item {
+  color: rgba(60, 60, 67, 0.4) !important;
+}
+
+html[data-theme="light"] .bn-item span {
+  color: rgba(60, 60, 67, 0.5) !important;
+}
+
+html[data-theme="light"] .bn-item.active {
+  color: #007aff !important;
+}
+
+html[data-theme="light"] .bn-item.active span {
+  color: #007aff !important;
+}
+
+html[data-theme="light"] .bn-item.active .bn-icon {
+  background: rgba(0, 122, 255, 0.12) !important;
+  box-shadow: 0 0 14px rgba(0, 122, 255, 0.2) !important;
+  color: #007aff !important;
+}
+
+html[data-theme="light"] .bn-item:not(.active):hover .bn-icon {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+html[data-theme="light"] .bn-item:not(.active):hover {
+  color: rgba(60, 60, 67, 0.7) !important;
+}
