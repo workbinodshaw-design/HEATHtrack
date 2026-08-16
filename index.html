@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HealthAI — Personal Health Companion</title>
+  <meta name="description" content="AI-powered personal health companion for water tracking, medicine reminders, diet logging, and smart health analysis." />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Sora:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/animations.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+
+  <!-- ===================== ONBOARDING ===================== -->
+  <div id="onboarding-overlay" class="onboarding-overlay hidden">
+    <div class="onboarding-card">
+
+      <div class="onboarding-logo">
+        <div class="logo-icon">
+          <i data-lucide="heart-pulse" width="30" height="30"></i>
+        </div>
+        <h1>HealthAI</h1>
+        <p>Your personal AI health companion</p>
+      </div>
+
+      <div id="onboarding-steps">
+        <!-- Step 1 -->
+        <div class="onboard-step active" data-step="1">
+          <h2>Personal Information</h2>
+          <p>Tell us about yourself so we can personalize your health profile.</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="ob-name" placeholder="John Doe" />
+            </div>
+            <div class="form-group">
+              <label>Age</label>
+              <input type="number" id="ob-age" placeholder="25" min="1" max="120" />
+            </div>
+            <div class="form-group">
+              <label>Gender</label>
+              <div class="btn-group" id="ob-gender">
+                <button class="btn-option active" data-value="male">Male</button>
+                <button class="btn-option" data-value="female">Female</button>
+                <button class="btn-option" data-value="other">Other</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Blood Group</label>
+              <select id="ob-blood">
+                <option value="">Select</option>
+                <option>A+</option><option>A-</option>
+                <option>B+</option><option>B-</option>
+                <option>AB+</option><option>AB-</option>
+                <option>O+</option><option>O-</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="onboard-step" data-step="2">
+          <h2>Body Measurements</h2>
+          <p>Used to calculate BMI and your personalized daily water goal.</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Height (cm)</label>
+              <input type="number" id="ob-height" placeholder="170" />
+            </div>
+            <div class="form-group">
+              <label>Weight (kg)</label>
+              <input type="number" id="ob-weight" placeholder="70" />
+            </div>
+            <div class="form-group full">
+              <label>Activity Level</label>
+              <div class="btn-group" id="ob-activity">
+                <button class="btn-option active" data-value="sedentary">Sedentary</button>
+                <button class="btn-option" data-value="moderate">Moderate</button>
+                <button class="btn-option" data-value="active">Active</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="onboard-step" data-step="3">
+          <h2>Medical History</h2>
+          <p>Optional — helps AI provide more accurate health insights.</p>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Existing Conditions</label>
+              <div class="checkbox-grid" id="ob-conditions">
+                <label class="check-item"><input type="checkbox" value="diabetes"> Diabetes</label>
+                <label class="check-item"><input type="checkbox" value="hypertension"> Hypertension</label>
+                <label class="check-item"><input type="checkbox" value="thyroid"> Thyroid</label>
+                <label class="check-item"><input type="checkbox" value="asthma"> Asthma</label>
+                <label class="check-item"><input type="checkbox" value="heart"> Heart Disease</label>
+                <label class="check-item"><input type="checkbox" value="none"> None</label>
+              </div>
+            </div>
+            <div class="form-group full">
+              <label>Known Allergies</label>
+              <input type="text" id="ob-allergies" placeholder="e.g. penicillin, peanuts" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="onboard-step" data-step="4">
+          <div class="onboard-done">
+            <div class="done-icon-wrap">
+              <i data-lucide="check-circle-2" width="52" height="52"></i>
+            </div>
+            <h2>Profile Complete</h2>
+            <p>Your personalized health dashboard is ready. Let's begin your journey.</p>
+            <div class="bmi-preview" id="ob-bmi-preview"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="onboard-nav">
+        <button class="btn-ghost" id="ob-back" onclick="onboardBack()" style="display:none">Back</button>
+        <div class="step-dots">
+          <span class="dot active"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+        <button class="btn-primary" id="ob-next" onclick="onboardNext()">Continue</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== MAIN APP ===================== -->
+  <div id="app" class="app-shell hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="app-logo">
+          <div class="logo-dot">
+            <i data-lucide="heart-pulse" width="14" height="14"></i>
+          </div>
+          <span>HealthAI</span>
+        </div>
+        <button class="sidebar-close" id="sidebar-close" onclick="toggleSidebar()">
+          <i data-lucide="x" width="16" height="16"></i>
+        </button>
+      </div>
+
+      <div class="user-card" id="sidebar-user">
+        <div class="user-avatar" id="sidebar-avatar">U</div>
+        <div class="user-info">
+          <span class="user-name" id="sidebar-name">User</span>
+          <span class="user-sub" id="sidebar-bmi">HealthAI</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-group-label">Overview</div>
+        <a class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+          <i data-lucide="layout-dashboard" width="16" height="16"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <div class="nav-group-label">Tracking</div>
+        <a class="nav-item" data-page="water" onclick="navigate('water')">
+          <i data-lucide="droplets" width="16" height="16"></i>
+          <span>Water Intake</span>
+          <span class="nav-badge hidden" id="nav-water-badge"></span>
+        </a>
+        <a class="nav-item" data-page="medications" onclick="navigate('medications')">
+          <i data-lucide="pill" width="16" height="16"></i>
+          <span>Medications</span>
+          <span class="nav-badge hidden" id="nav-med-badge"></span>
+        </a>
+        <a class="nav-item" data-page="nutrition" onclick="navigate('nutrition')">
+          <i data-lucide="salad" width="16" height="16"></i>
+          <span>Nutrition</span>
+        </a>
+        <a class="nav-item" data-page="activity" onclick="navigate('activity')">
+          <i data-lucide="activity" width="16" height="16"></i>
+          <span>Activity</span>
+        </a>
+
+        <div class="nav-group-label">Insights</div>
+        <a class="nav-item" data-page="analysis" onclick="navigate('analysis')">
+          <i data-lucide="brain-circuit" width="16" height="16"></i>
+          <span>AI Analysis</span>
+          <span class="nav-tag">AI</span>
+        </a>
+
+        <div class="nav-divider"></div>
+
+        <a class="nav-item" data-page="profile" onclick="navigate('profile')">
+          <i data-lucide="user-round" width="16" height="16"></i>
+          <span>Profile</span>
+        </a>
+        <a class="nav-item" data-page="settings" onclick="navigate('settings')">
+          <i data-lucide="settings-2" width="16" height="16"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
+          <i data-lucide="sun-moon" width="14" height="14"></i>
+          <span id="theme-label">Toggle Theme</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <button class="menu-btn" onclick="toggleSidebar()">
+          <i data-lucide="menu" width="18" height="18"></i>
+        </button>
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-actions">
+          <div class="date-chip" id="topbar-date"></div>
+          <button class="notif-btn" id="notif-btn" onclick="requestNotificationPermission()" title="Enable notifications">
+            <i data-lucide="bell" width="16" height="16"></i>
+            <span class="notif-dot hidden" id="notif-dot"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- PAGES -->
+      <div class="page-container">
+
+        <!-- =========== DASHBOARD =========== -->
+        <section class="page active" id="page-dashboard">
+          <div class="page-header">
+            <div>
+              <h1 class="greeting" id="greeting-text">Good Morning</h1>
+              <p class="greeting-sub" id="greeting-sub">Here is your health overview for today.</p>
+            </div>
+            <div class="health-score-chip" id="health-score-chip">
+              <span class="score-num" id="dash-health-score">--</span>
+              <span class="score-label">Health Score</span>
+            </div>
+          </div>
+
+          <!-- Stat Cards -->
+          <div class="stats-grid">
+            <div class="stat-card water-card" onclick="navigate('water')">
+              <div class="stat-card-top">
+                <div class="stat-icon water-icon">
+                  <i data-lucide="droplets" width="18" height="18"></i>
+                </div>
+                <div class="ring-wrap">
+                  <svg class="ring-svg" viewBox="0 0 36 36">
+                    <circle class="ring-bg" cx="18" cy="18" r="15.9"/>
+                    <circle class="ring-fill water-ring" cx="18" cy="18" r="15.9" id="dash-water-ring"/>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <span class="stat-value" id="dash-water-val">0 ml</span>
+                <span class="stat-label">Water Today</span>
+              </div>
+            </div>
+
+            <div class="stat-card cals-card" onclick="navigate('nutrition')">
+              <div class="stat-card-top">
+                <div class="stat-icon cal-icon">
+                  <i data-lucide="flame" width="18" height="18"></i>
+                </div>
+                <div class="ring-wrap">
+                  <svg class="ring-svg" viewBox="0 0 36 36">
+                    <circle class="ring-bg" cx="18" cy="18" r="15.9"/>
+                    <circle class="ring-fill cal-ring" cx="18" cy="18" r="15.9" id="dash-cal-ring"/>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <span class="stat-value" id="dash-cal-val">0 kcal</span>
+                <span class="stat-label">Calories Today</span>
+              </div>
+            </div>
+
+            <div class="stat-card activity-card" onclick="navigate('activity')">
+              <div class="stat-card-top">
+                <div class="stat-icon act-icon">
+                  <i data-lucide="timer" width="18" height="18"></i>
+                </div>
+                <div class="ring-wrap">
+                  <svg class="ring-svg" viewBox="0 0 36 36">
+                    <circle class="ring-bg" cx="18" cy="18" r="15.9"/>
+                    <circle class="ring-fill act-ring" cx="18" cy="18" r="15.9" id="dash-act-ring"/>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <span class="stat-value" id="dash-steps-val">0 min</span>
+                <span class="stat-label">Active Today</span>
+              </div>
+            </div>
+
+            <div class="stat-card med-card" onclick="navigate('medications')">
+              <div class="stat-card-top">
+                <div class="stat-icon med-icon">
+                  <i data-lucide="pill" width="18" height="18"></i>
+                </div>
+                <div class="med-status-icon" id="dash-med-icon">
+                  <i data-lucide="check" width="18" height="18"></i>
+                </div>
+              </div>
+              <div>
+                <span class="stat-value" id="dash-med-val">0 / 0</span>
+                <span class="stat-label">Meds Taken</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dashboard Body -->
+          <div class="dash-body">
+
+            <!-- Water Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Water Intake</h3>
+                <button class="btn-sm" onclick="navigate('water')">Track</button>
+              </div>
+              <div class="water-visual">
+                <div class="water-bottle">
+                  <div class="water-fill" id="dash-water-fill" style="height:0%"></div>
+                  <div class="water-label" id="dash-water-pct">0%</div>
+                </div>
+                <div class="water-stats">
+                  <div class="ws-item">
+                    <span class="ws-val" id="dash-water-drunk">0 ml</span>
+                    <span class="ws-key">Consumed</span>
+                  </div>
+                  <div class="ws-sep"></div>
+                  <div class="ws-item">
+                    <span class="ws-val" id="dash-water-left">2000 ml</span>
+                    <span class="ws-key">Remaining</span>
+                  </div>
+                  <div class="ws-sep"></div>
+                  <div class="ws-item">
+                    <span class="ws-val" id="dash-water-goal-d">2000 ml</span>
+                    <span class="ws-key">Daily Goal</span>
+                  </div>
+                </div>
+              </div>
+              <div class="quick-water-btns">
+                <button class="qw-btn" onclick="quickAddWater(150)">150 ml<br><span>Sip</span></button>
+                <button class="qw-btn" onclick="quickAddWater(250)">250 ml<br><span>Glass</span></button>
+                <button class="qw-btn" onclick="quickAddWater(500)">500 ml<br><span>Bottle</span></button>
+                <button class="qw-btn" onclick="quickAddWater(750)">750 ml<br><span>Large</span></button>
+              </div>
+            </div>
+
+            <!-- Medications Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Upcoming Medications</h3>
+                <button class="btn-sm" onclick="navigate('medications')">Manage</button>
+              </div>
+              <div id="dash-meds-list" class="med-list-mini">
+                <div class="empty-state-mini">No medications added yet. <a onclick="navigate('medications')">Add medicine</a></div>
+              </div>
+            </div>
+
+            <!-- Weekly Water Chart -->
+            <div class="card chart-card">
+              <div class="card-header">
+                <h3>Weekly Water Trend</h3>
+                <span class="chart-unit">ml / day</span>
+              </div>
+              <canvas id="weekly-water-chart" height="110"></canvas>
+            </div>
+
+            <!-- Health Tip -->
+            <div class="card tips-card">
+              <div class="card-header">
+                <h3>Health Insight</h3>
+                <div class="insight-dot"></div>
+              </div>
+              <div class="tip-content" id="daily-tip">
+                Drinking water consistently throughout the day improves organ function, cognitive performance, and energy levels.
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- =========== WATER PAGE =========== -->
+        <section class="page" id="page-water">
+          <div class="page-header">
+            <div>
+              <h1>Water Intake</h1>
+              <p>Track your daily hydration and stay on goal.</p>
+            </div>
+          </div>
+
+          <div class="water-page-grid">
+            <div class="card water-main-card">
+              <div class="water-goal-info">
+                <span>Daily Goal: <strong id="water-goal-display">2000 ml</strong></span>
+                <button class="btn-ghost-sm" onclick="openWaterGoalModal()">Edit Goal</button>
+              </div>
+
+              <div class="big-water-visual">
+                <div class="big-bottle">
+                  <div class="big-water-fill" id="water-big-fill" style="height:0%">
+                    <div class="water-waves"></div>
+                  </div>
+                  <div class="big-bottle-label">
+                    <span class="big-pct" id="water-big-pct">0%</span>
+                    <span class="big-ml" id="water-big-ml">0 / 2000 ml</span>
+                  </div>
+                </div>
+              </div>
+
+              <p class="section-label">Quick Add</p>
+              <div class="quick-add-grid">
+                <button class="qa-btn" onclick="addWater(150)">
+                  <i data-lucide="cup-soda" width="18" height="18"></i>
+                  <span class="qa-amount">150 ml</span>
+                  <span class="qa-name">Sip</span>
+                </button>
+                <button class="qa-btn" onclick="addWater(250)">
+                  <i data-lucide="glass-water" width="18" height="18"></i>
+                  <span class="qa-amount">250 ml</span>
+                  <span class="qa-name">Glass</span>
+                </button>
+                <button class="qa-btn" onclick="addWater(350)">
+                  <i data-lucide="coffee" width="18" height="18"></i>
+                  <span class="qa-amount">350 ml</span>
+                  <span class="qa-name">Mug</span>
+                </button>
+                <button class="qa-btn" onclick="addWater(500)">
+                  <i data-lucide="bottle-water" width="18" height="18"></i>
+                  <span class="qa-amount">500 ml</span>
+                  <span class="qa-name">Bottle</span>
+                </button>
+                <button class="qa-btn" onclick="addWater(750)">
+                  <i data-lucide="container" width="18" height="18"></i>
+                  <span class="qa-amount">750 ml</span>
+                  <span class="qa-name">Large</span>
+                </button>
+                <button class="qa-btn qa-custom" onclick="openCustomWaterModal()">
+                  <i data-lucide="pencil-line" width="18" height="18"></i>
+                  <span class="qa-amount">Custom</span>
+                  <span class="qa-name">Amount</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Today's Log -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Today's Log</h3>
+                <button class="btn-ghost-sm danger" onclick="clearTodayWater()">Clear</button>
+              </div>
+              <div id="water-log-list" class="water-log">
+                <div class="empty-state-mini">No intake logged yet.</div>
+              </div>
+            </div>
+
+            <!-- Weekly Chart -->
+            <div class="card chart-card full-w">
+              <div class="card-header">
+                <h3>Last 7 Days</h3>
+                <span class="chart-unit">ml / day</span>
+              </div>
+              <canvas id="water-week-chart" height="120"></canvas>
+            </div>
+
+            <!-- Reminders -->
+            <div class="card full-w">
+              <div class="card-header">
+                <h3>Hydration Reminders</h3>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="water-reminder-toggle" onchange="toggleWaterReminder()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <p class="card-desc">Remind me every:</p>
+              <div class="interval-btns" id="interval-btns">
+                <button class="interval-btn active" data-min="30">30 min</button>
+                <button class="interval-btn" data-min="60">1 hour</button>
+                <button class="interval-btn" data-min="90">1.5 hrs</button>
+                <button class="interval-btn" data-min="120">2 hours</button>
+              </div>
+              <p class="reminder-status" id="water-reminder-status">Reminders are disabled</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========== MEDICATIONS =========== -->
+        <section class="page" id="page-medications">
+          <div class="page-header">
+            <div>
+              <h1>Medications</h1>
+              <p>Never miss a dose. Stay consistent with your treatment.</p>
+            </div>
+            <button class="btn-primary" onclick="openAddMedModal()">
+              <i data-lucide="plus" width="15" height="15"></i>
+              Add Medicine
+            </button>
+          </div>
+
+          <div class="med-page-grid">
+            <div class="card">
+              <div class="card-header">
+                <h3>Today's Schedule</h3>
+              </div>
+              <div id="today-med-schedule" class="med-schedule">
+                <div class="empty-state-mini">No medicines scheduled.</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3>My Medications</h3>
+              </div>
+              <div id="all-meds-list" class="all-meds">
+                <div class="empty-state-mini">No medicines added. <button class="btn-sm mt-8" onclick="openAddMedModal()">Add Medicine</button></div>
+              </div>
+            </div>
+
+            <div class="card chart-card full-w">
+              <div class="card-header">
+                <h3>Adherence — Last 7 Days</h3>
+                <span class="chart-unit">% adherence</span>
+              </div>
+              <canvas id="med-adherence-chart" height="110"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========== NUTRITION =========== -->
+        <section class="page" id="page-nutrition">
+          <div class="page-header">
+            <div>
+              <h1>Nutrition</h1>
+              <p>Log meals and monitor your macronutrient intake.</p>
+            </div>
+            <button class="btn-primary" onclick="openAddMealModal()">
+              <i data-lucide="plus" width="15" height="15"></i>
+              Log Meal
+            </button>
+          </div>
+
+          <div class="nutrition-page-grid">
+            <div class="card cal-overview-card">
+              <div class="card-header">
+                <h3>Calorie Summary</h3>
+                <span class="cal-goal-label">Goal: <strong id="nut-cal-goal">2000</strong> kcal</span>
+              </div>
+              <div class="cal-meter">
+                <div class="cal-bar">
+                  <div class="cal-fill" id="nut-cal-fill" style="width:0%"></div>
+                </div>
+                <div class="cal-numbers">
+                  <span id="nut-cal-consumed">0</span> consumed of <span id="nut-cal-goal2">2000</span> kcal
+                </div>
+              </div>
+              <div class="macros-row">
+                <div class="macro-item">
+                  <span class="macro-val" id="nut-protein">0 g</span>
+                  <span class="macro-key">Protein</span>
+                  <div class="macro-bar"><div class="macro-fill protein-fill" id="nut-protein-bar" style="width:0%"></div></div>
+                </div>
+                <div class="macro-item">
+                  <span class="macro-val" id="nut-carbs">0 g</span>
+                  <span class="macro-key">Carbs</span>
+                  <div class="macro-bar"><div class="macro-fill carb-fill" id="nut-carbs-bar" style="width:0%"></div></div>
+                </div>
+                <div class="macro-item">
+                  <span class="macro-val" id="nut-fats">0 g</span>
+                  <span class="macro-key">Fats</span>
+                  <div class="macro-bar"><div class="macro-fill fat-fill" id="nut-fats-bar" style="width:0%"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card meals-card">
+              <div class="card-header">
+                <h3>Meals Today</h3>
+              </div>
+              <div class="meal-sections">
+                <div class="meal-section">
+                  <div class="meal-type-header">Breakfast</div>
+                  <div id="meals-breakfast" class="meal-list"><div class="empty-meal">Nothing logged</div></div>
+                </div>
+                <div class="meal-section">
+                  <div class="meal-type-header">Lunch</div>
+                  <div id="meals-lunch" class="meal-list"><div class="empty-meal">Nothing logged</div></div>
+                </div>
+                <div class="meal-section">
+                  <div class="meal-type-header">Dinner</div>
+                  <div id="meals-dinner" class="meal-list"><div class="empty-meal">Nothing logged</div></div>
+                </div>
+                <div class="meal-section">
+                  <div class="meal-type-header">Snacks</div>
+                  <div id="meals-snacks" class="meal-list"><div class="empty-meal">Nothing logged</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card chart-card full-w">
+              <div class="card-header">
+                <h3>Weekly Calorie Trend</h3>
+                <span class="chart-unit">kcal / day</span>
+              </div>
+              <canvas id="cal-week-chart" height="120"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========== ACTIVITY =========== -->
+        <section class="page" id="page-activity">
+          <div class="page-header">
+            <div>
+              <h1>Activity</h1>
+              <p>Track your physical activity and calories burned.</p>
+            </div>
+            <button class="btn-primary" onclick="openAddActivityModal()">
+              <i data-lucide="plus" width="15" height="15"></i>
+              Log Activity
+            </button>
+          </div>
+
+          <div class="activity-page-grid">
+            <div class="card activity-summary-card">
+              <div class="act-ring-wrap">
+                <svg viewBox="0 0 100 100" class="act-ring-svg">
+                  <circle class="act-ring-bg" cx="50" cy="50" r="40"/>
+                  <circle class="act-ring-fill" cx="50" cy="50" r="40" id="ring-move"/>
+                </svg>
+                <div class="act-ring-label">
+                  <span class="act-ring-val" id="act-duration-val">0</span>
+                  <span class="act-ring-unit">min</span>
+                </div>
+              </div>
+              <div class="act-stats-row">
+                <div class="act-stat">
+                  <div class="act-stat-icon-wrap">
+                    <i data-lucide="flame" width="16" height="16"></i>
+                  </div>
+                  <span class="act-stat-val" id="act-cal-val">0</span>
+                  <span class="act-stat-key">Cal Burned</span>
+                </div>
+                <div class="act-stat">
+                  <div class="act-stat-icon-wrap">
+                    <i data-lucide="clock" width="16" height="16"></i>
+                  </div>
+                  <span class="act-stat-val" id="act-time-val">0</span>
+                  <span class="act-stat-key">Minutes</span>
+                </div>
+                <div class="act-stat">
+                  <div class="act-stat-icon-wrap">
+                    <i data-lucide="layers" width="16" height="16"></i>
+                  </div>
+                  <span class="act-stat-val" id="act-sessions-val">0</span>
+                  <span class="act-stat-key">Sessions</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3>Today's Activities</h3>
+              </div>
+              <div id="activity-list" class="activity-list">
+                <div class="empty-state-mini">No activities logged today. <button class="btn-sm mt-8" onclick="openAddActivityModal()">Log Activity</button></div>
+              </div>
+            </div>
+
+            <div class="card chart-card full-w">
+              <div class="card-header">
+                <h3>Weekly Activity</h3>
+                <span class="chart-unit">min / day</span>
+              </div>
+              <canvas id="activity-week-chart" height="120"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========== AI ANALYSIS =========== -->
+        <section class="page" id="page-analysis">
+          <div class="page-header">
+            <div>
+              <h1>AI Health Analysis</h1>
+              <p>Powered by Gemini AI — personalized insights from your data.</p>
+            </div>
+            <span class="badge badge-good" style="align-self:center;">AI Connected</span>
+          </div>
+
+          <!-- LIVE STATS — always real, always today -->
+          <div class="card" style="margin-bottom:16px;">
+            <div class="card-header">
+              <h3>Today's Stats</h3>
+              <span class="badge badge-info">Live</span>
+            </div>
+            <div id="ai-live-summary">
+              <div class="ai-stats-row">
+                <div class="ai-stat-chip"><span class="ai-stat-val">--</span><span class="ai-stat-lbl">Water</span></div>
+                <div class="ai-stat-chip"><span class="ai-stat-val">--</span><span class="ai-stat-lbl">Calories</span></div>
+                <div class="ai-stat-chip"><span class="ai-stat-val">--</span><span class="ai-stat-lbl">Activity</span></div>
+                <div class="ai-stat-chip"><span class="ai-stat-val">--</span><span class="ai-stat-lbl">BMI</span></div>
+                <div class="ai-stat-chip"><span class="ai-stat-val">--</span><span class="ai-stat-lbl">Score</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- REAL CHARTS -->
+          <div class="stats-grid" style="margin-bottom:16px;">
+            <div class="card chart-card">
+              <div class="card-header"><h3>Weekly Water</h3></div>
+              <canvas id="analysis-water-chart" height="120"></canvas>
+            </div>
+            <div class="card chart-card">
+              <div class="card-header"><h3>Weekly Activity</h3></div>
+              <canvas id="analysis-act-chart" height="120"></canvas>
+            </div>
+          </div>
+
+          <!-- Hidden setup card (kept for JS compatibility) -->
+          <div id="api-setup-card" style="display:none;"></div>
+          <input type="hidden" id="gemini-api-input" />
+
+          <div class="analysis-page-grid">
+            <!-- AI REPORT -->
+            <div class="card analysis-report-card" id="analysis-report-card">
+              <div class="card-header">
+                <h3>AI Health Report</h3>
+                <button class="btn-primary" id="generate-report-btn" onclick="generateAIReport()">
+                  <i data-lucide="sparkles" width="14" height="14"></i>
+                  Generate Report
+                </button>
+              </div>
+              <div id="ai-report-content" class="ai-report">
+                <div class="ai-empty">
+                  <i data-lucide="brain-circuit" width="40" height="40"></i>
+                  <p>Tap <strong>Generate Report</strong> — AI will analyze all your logged data and give you a personalized health plan.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- SMART SUGGESTIONS -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Smart Suggestions</h3>
+              </div>
+              <div id="ai-suggestions" class="suggestions-list">
+                <div class="empty-state-mini">Generate a report to see your personalized suggestions.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+
+        <!-- =========== PROFILE =========== -->
+        <section class="page" id="page-profile">
+          <div class="page-header">
+            <div>
+              <h1>Profile</h1>
+              <p>Manage your personal and medical information.</p>
+            </div>
+            <button class="btn-primary" onclick="saveProfile()">Save Changes</button>
+          </div>
+
+          <div class="profile-page-grid">
+            <div class="card profile-hero-card">
+              <div class="profile-avatar-big" id="profile-avatar-big">U</div>
+              <div class="profile-bmi-badge">
+                <span id="profile-bmi-val">--</span>
+                <span id="profile-bmi-cat">BMI</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <p class="card-section-title">Personal Information</p>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Full Name</label>
+                  <input type="text" id="p-name" />
+                </div>
+                <div class="form-group">
+                  <label>Age</label>
+                  <input type="number" id="p-age" />
+                </div>
+                <div class="form-group">
+                  <label>Gender</label>
+                  <select id="p-gender">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Blood Group</label>
+                  <select id="p-blood">
+                    <option value="">Select</option>
+                    <option>A+</option><option>A-</option>
+                    <option>B+</option><option>B-</option>
+                    <option>AB+</option><option>AB-</option>
+                    <option>O+</option><option>O-</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Height (cm)</label>
+                  <input type="number" id="p-height" oninput="updateBMI()" />
+                </div>
+                <div class="form-group">
+                  <label>Weight (kg)</label>
+                  <input type="number" id="p-weight" oninput="updateBMI()" />
+                </div>
+                <div class="form-group full">
+                  <label>Activity Level</label>
+                  <select id="p-activity">
+                    <option value="sedentary">Sedentary — desk job, little exercise</option>
+                    <option value="moderate">Moderate — exercise 3–5 days/week</option>
+                    <option value="active">Active — daily exercise or physical job</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <p class="card-section-title">Medical Information</p>
+              <div class="form-grid">
+                <div class="form-group full">
+                  <label>Health Conditions</label>
+                  <div class="checkbox-grid" id="p-conditions">
+                    <label class="check-item"><input type="checkbox" value="diabetes"> Diabetes</label>
+                    <label class="check-item"><input type="checkbox" value="hypertension"> Hypertension</label>
+                    <label class="check-item"><input type="checkbox" value="thyroid"> Thyroid</label>
+                    <label class="check-item"><input type="checkbox" value="asthma"> Asthma</label>
+                    <label class="check-item"><input type="checkbox" value="heart"> Heart Disease</label>
+                    <label class="check-item"><input type="checkbox" value="none"> None</label>
+                  </div>
+                </div>
+                <div class="form-group full">
+                  <label>Known Allergies</label>
+                  <input type="text" id="p-allergies" placeholder="e.g. penicillin, peanuts" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =========== SETTINGS =========== -->
+        <section class="page" id="page-settings">
+          <div class="page-header">
+            <div>
+              <h1>Settings</h1>
+              <p>Configure your goals, notifications, and preferences.</p>
+            </div>
+          </div>
+
+          <div class="settings-grid">
+            <div class="card">
+              <p class="card-section-title">Daily Goals</p>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Water Goal (ml/day)</label>
+                  <input type="number" id="set-water-goal" value="2000" min="500" max="5000" step="100" />
+                </div>
+                <div class="form-group">
+                  <label>Calorie Goal (kcal/day)</label>
+                  <input type="number" id="set-cal-goal" value="2000" min="1000" max="5000" step="50" />
+                </div>
+                <div class="form-group full">
+                  <label>Activity Goal (min/day)</label>
+                  <input type="number" id="set-act-goal" value="30" min="10" max="300" step="5" />
+                </div>
+              </div>
+              <button class="btn-primary mt-16" onclick="saveSettings()">Save Goals</button>
+            </div>
+
+            <div class="card">
+              <p class="card-section-title">Notifications</p>
+              <div class="settings-list">
+                <div class="setting-item">
+                  <div>
+                    <span class="setting-name">Water Reminders</span>
+                    <span class="setting-desc">Periodic reminders to drink water</span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="set-water-notif" onchange="saveSettings()">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="setting-item">
+                  <div>
+                    <span class="setting-name">Medicine Alerts</span>
+                    <span class="setting-desc">Scheduled medication reminders</span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="set-med-notif" checked onchange="saveSettings()">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="setting-item">
+                  <div>
+                    <span class="setting-name">Quiet Hours</span>
+                    <span class="setting-desc">Silence notifications 11 PM – 7 AM</span>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="set-quiet" onchange="saveSettings()">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="card danger-zone-card">
+              <p class="card-section-title danger-title">Data Management</p>
+              <div class="settings-list">
+                <div class="setting-item">
+                  <div>
+                    <span class="setting-name">Clear Today's Data</span>
+                    <span class="setting-desc">Resets all logs for today</span>
+                  </div>
+                  <button class="btn-danger-sm" onclick="clearTodayData()">Clear</button>
+                </div>
+                <div class="setting-item">
+                  <div>
+                    <span class="setting-name">Reset All Data</span>
+                    <span class="setting-desc">Permanently removes all stored data</span>
+                  </div>
+                  <button class="btn-danger-sm" onclick="resetAllData()">Reset</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- /page-container -->
+    </main>
+  </div><!-- /app -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <a class="bn-item active" data-page="dashboard" onclick="navigate('dashboard')">
+      <div class="bn-icon"><i data-lucide="layout-dashboard" width="19" height="19"></i></div>
+      <span>Home</span>
+    </a>
+    <a class="bn-item" data-page="water" onclick="navigate('water')">
+      <div class="bn-icon"><i data-lucide="droplets" width="19" height="19"></i></div>
+      <span>Water</span>
+    </a>
+    <a class="bn-item" data-page="medications" onclick="navigate('medications')">
+      <div class="bn-icon"><i data-lucide="pill" width="19" height="19"></i></div>
+      <span>Meds</span>
+    </a>
+    <a class="bn-item" data-page="nutrition" onclick="navigate('nutrition')">
+      <div class="bn-icon"><i data-lucide="salad" width="19" height="19"></i></div>
+      <span>Nutrition</span>
+    </a>
+    <a class="bn-item" data-page="analysis" onclick="navigate('analysis')">
+      <div class="bn-icon"><i data-lucide="brain-circuit" width="19" height="19"></i></div>
+      <span>AI</span>
+    </a>
+  </nav>
+
+  <!-- ===================== MODALS ===================== -->
+
+  <!-- Water Goal Modal -->
+  <div class="modal-backdrop hidden" id="water-goal-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Edit Water Goal</h3>
+        <button onclick="closeModal('water-goal-modal')"><i data-lucide="x" width="16"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Daily Water Goal (ml)</label>
+          <input type="number" id="modal-water-goal" value="2000" min="500" max="6000" step="100" />
+        </div>
+        <div class="goal-suggestions">
+          <p>Quick select:</p>
+          <div class="goal-chips" id="goal-chips"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('water-goal-modal')">Cancel</button>
+        <button class="btn-primary" onclick="saveWaterGoal()">Save Goal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Water Modal -->
+  <div class="modal-backdrop hidden" id="custom-water-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Custom Amount</h3>
+        <button onclick="closeModal('custom-water-modal')"><i data-lucide="x" width="16"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Amount (ml)</label>
+          <input type="number" id="custom-water-input" placeholder="e.g. 300" min="10" max="2000" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('custom-water-modal')">Cancel</button>
+        <button class="btn-primary" onclick="addCustomWater()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Medicine Modal -->
+  <div class="modal-backdrop hidden" id="add-med-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Medication</h3>
+        <button onclick="closeModal('add-med-modal')"><i data-lucide="x" width="16"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Medicine Name</label>
+            <input type="text" id="med-name-input" placeholder="e.g. Metformin 500mg" />
+          </div>
+          <div class="form-group">
+            <label>Dosage</label>
+            <input type="text" id="med-dose-input" placeholder="e.g. 1 tablet" />
+          </div>
+          <div class="form-group">
+            <label>Frequency</label>
+            <select id="med-freq-input">
+              <option value="1">Once daily</option>
+              <option value="2">Twice daily</option>
+              <option value="3">Three times daily</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>Reminder Times</label>
+            <div id="med-times-inputs">
+              <input type="time" class="med-time-input" value="08:00" />
+            </div>
+          </div>
+          <div class="form-group full">
+            <label>Color Tag</label>
+            <div class="color-picker" id="med-color-picker">
+              <button class="color-dot active" data-color="#4d9eff" style="background:#4d9eff"></button>
+              <button class="color-dot" data-color="#ef4444" style="background:#ef4444"></button>
+              <button class="color-dot" data-color="#22c55e" style="background:#22c55e"></button>
+              <button class="color-dot" data-color="#eab308" style="background:#eab308"></button>
+              <button class="color-dot" data-color="#a855f7" style="background:#a855f7"></button>
+            </div>
+          </div>
+          <div class="form-group full">
+            <label>Notes (optional)</label>
+            <input type="text" id="med-notes-input" placeholder="e.g. Take after meals" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('add-med-modal')">Cancel</button>
+        <button class="btn-primary" onclick="saveMedication()">Add Medicine</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Meal Modal -->
+  <div class="modal-backdrop hidden" id="add-meal-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Log Meal</h3>
+        <button onclick="closeModal('add-meal-modal')"><i data-lucide="x" width="16"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Meal Type</label>
+            <div class="btn-group" id="meal-type-btns">
+              <button class="btn-option active" data-value="breakfast">Breakfast</button>
+              <button class="btn-option" data-value="lunch">Lunch</button>
+              <button class="btn-option" data-value="dinner">Dinner</button>
+              <button class="btn-option" data-value="snacks">Snacks</button>
+            </div>
+          </div>
+          <div class="form-group full">
+            <label>Food Item</label>
+            <input type="text" id="meal-name-input" placeholder="e.g. Dal Rice, Apple, Chapati" />
+          </div>
+          <div class="form-group">
+            <label>Quantity</label>
+            <input type="text" id="meal-qty-input" placeholder="e.g. 1 bowl" />
+          </div>
+          <div class="form-group">
+            <label>Calories (kcal)</label>
+            <input type="number" id="meal-cal-input" placeholder="350" />
+          </div>
+          <div class="form-group">
+            <label>Protein (g)</label>
+            <input type="number" id="meal-protein-input" placeholder="15" />
+          </div>
+          <div class="form-group">
+            <label>Carbs (g)</label>
+            <input type="number" id="meal-carbs-input" placeholder="45" />
+          </div>
+          <div class="form-group">
+            <label>Fats (g)</label>
+            <input type="number" id="meal-fats-input" placeholder="10" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('add-meal-modal')">Cancel</button>
+        <button class="btn-primary" onclick="saveMeal()">Log Meal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Activity Modal -->
+  <div class="modal-backdrop hidden" id="add-activity-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Log Activity</h3>
+        <button onclick="closeModal('add-activity-modal')"><i data-lucide="x" width="16"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Activity Type</label>
+            <div class="activity-types" id="activity-type-grid">
+              <button class="act-type-btn active" data-value="walk" data-met="3.5">Walk</button>
+              <button class="act-type-btn" data-value="run" data-met="8">Run</button>
+              <button class="act-type-btn" data-value="gym" data-met="6">Gym</button>
+              <button class="act-type-btn" data-value="yoga" data-met="2.5">Yoga</button>
+              <button class="act-type-btn" data-value="cycle" data-met="7">Cycle</button>
+              <button class="act-type-btn" data-value="swim" data-met="7">Swim</button>
+              <button class="act-type-btn" data-value="sports" data-met="6">Sports</button>
+              <button class="act-type-btn" data-value="other" data-met="4">Other</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Duration (minutes)</label>
+            <input type="number" id="act-duration-input" placeholder="30" min="1" max="300" />
+          </div>
+          <div class="form-group">
+            <label>Calories Burned</label>
+            <input type="number" id="act-cal-input" placeholder="Auto-calculated" />
+          </div>
+          <div class="form-group full">
+            <label>Notes (optional)</label>
+            <input type="text" id="act-notes-input" placeholder="e.g. Morning run in the park" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('add-activity-modal')">Cancel</button>
+        <button class="btn-primary" onclick="saveActivity()">Log Activity</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
+  <!-- Sidebar overlay -->
+  <div class="sidebar-overlay hidden" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/animate.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }, err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

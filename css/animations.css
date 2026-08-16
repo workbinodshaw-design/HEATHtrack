@@ -1,0 +1,614 @@
+/* ============================================================
+   HEALTHAI — PREMIUM ANIMATION SYSTEM
+   iPhone-grade smooth, springy, satisfying animations
+   ============================================================ */
+
+/* ---- ANIMATION EASING CURVES ---- */
+:root {
+  /* Spring easings (iOS-style overshoot) */
+  --spring:        cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-soft:   cubic-bezier(0.25, 1.25, 0.5,  1);
+  --spring-snappy: cubic-bezier(0.5,  1.8,  0.75, 1);
+
+  /* Smooth easings */
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:   cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-decel:    cubic-bezier(0, 0, 0.2, 1);
+  --ease-accel:    cubic-bezier(0.4, 0, 1, 1);
+
+  /* Durations */
+  --dur-instant:   80ms;
+  --dur-fast:      180ms;
+  --dur-base:      320ms;
+  --dur-slow:      480ms;
+  --dur-enter:     500ms;
+}
+
+/* ---- GPU ACCELERATION ---- */
+.card, .stat-card, .btn-primary, .btn-ghost,
+.nav-item, .qa-btn, .qw-btn, .modal,
+.sidebar, .page, .water-log-item,
+.med-schedule-item, .meal-item, .activity-item,
+.suggestion-item, .med-card-item {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ============================================================
+   PAGE TRANSITIONS
+   ============================================================ */
+.page {
+  animation: none;
+  opacity: 0;
+  transform: translateY(16px);
+}
+.page.active {
+  animation: pageEnter var(--dur-enter) var(--ease-out) forwards;
+}
+.page.exit {
+  animation: pageExit var(--dur-fast) var(--ease-accel) forwards;
+}
+@keyframes pageEnter {
+  0%   { opacity: 0; transform: translateY(16px) scale(0.99); }
+  100% { opacity: 1; transform: translateY(0)    scale(1); }
+}
+@keyframes pageExit {
+  0%   { opacity: 1; transform: translateY(0)    scale(1); }
+  100% { opacity: 0; transform: translateY(-8px) scale(0.99); }
+}
+
+/* ---- Staggered children ---- */
+.page.active .stats-grid .stat-card { opacity: 0; animation: cardStagger var(--dur-base) var(--spring) forwards; }
+.page.active .stats-grid .stat-card:nth-child(1) { animation-delay: 60ms; }
+.page.active .stats-grid .stat-card:nth-child(2) { animation-delay: 110ms; }
+.page.active .stats-grid .stat-card:nth-child(3) { animation-delay: 160ms; }
+.page.active .stats-grid .stat-card:nth-child(4) { animation-delay: 210ms; }
+
+.page.active .dash-body .card { opacity: 0; animation: cardStagger var(--dur-base) var(--spring) forwards; }
+.page.active .dash-body .card:nth-child(1) { animation-delay: 200ms; }
+.page.active .dash-body .card:nth-child(2) { animation-delay: 260ms; }
+.page.active .dash-body .card:nth-child(3) { animation-delay: 320ms; }
+.page.active .dash-body .card:nth-child(4) { animation-delay: 380ms; }
+
+@keyframes cardStagger {
+  0%   { opacity: 0; transform: translateY(20px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ============================================================
+   CARD INTERACTIONS
+   ============================================================ */
+.card {
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow   var(--dur-base) var(--ease-out),
+    transform    var(--dur-base) var(--spring-soft);
+}
+.card:hover {
+  border-color: rgba(255,255,255,0.13);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2);
+  transform: translateY(-2px);
+}
+.card:active { transform: translateY(0) scale(0.995); transition-duration: var(--dur-instant); }
+
+/* Stat cards — bigger lift */
+.stat-card {
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow   var(--dur-slow) var(--ease-out),
+    transform    var(--dur-base) var(--spring);
+}
+.stat-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.2);
+  border-color: rgba(255,255,255,0.16);
+}
+.stat-card:active { transform: scale(0.97); transition-duration: var(--dur-instant); }
+
+/* ============================================================
+   BUTTON ANIMATIONS — iPhone haptic feel
+   ============================================================ */
+.btn-primary {
+  transition:
+    background  var(--dur-fast)  var(--ease-out),
+    transform   var(--dur-base)  var(--spring),
+    box-shadow  var(--dur-base)  var(--ease-out),
+    opacity     var(--dur-fast)  var(--ease-out);
+}
+.btn-primary:hover  { transform: translateY(-2px) scale(1.03); }
+.btn-primary:active { transform: scale(0.94); transition-duration: var(--dur-instant); }
+
+.btn-ghost {
+  transition:
+    background    var(--dur-fast) var(--ease-out),
+    border-color  var(--dur-fast) var(--ease-out),
+    transform     var(--dur-base) var(--spring),
+    color         var(--dur-fast) var(--ease-out);
+}
+.btn-ghost:hover  { transform: translateY(-1px); }
+.btn-ghost:active { transform: scale(0.95); transition-duration: var(--dur-instant); }
+
+.btn-sm, .btn-ghost-sm {
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.btn-sm:active, .btn-ghost-sm:active { transform: scale(0.93); }
+
+.btn-option {
+  transition:
+    background   var(--dur-base) var(--spring-soft),
+    border-color var(--dur-fast) var(--ease-out),
+    color        var(--dur-fast) var(--ease-out),
+    transform    var(--dur-base) var(--spring),
+    box-shadow   var(--dur-base) var(--ease-out);
+}
+.btn-option:hover  { transform: translateY(-1px); }
+.btn-option:active { transform: scale(0.94); transition-duration: var(--dur-instant); }
+.btn-option.active { transform: none; }
+
+/* Quick add water buttons */
+.qa-btn {
+  transition:
+    background    var(--dur-base) var(--spring-soft),
+    border-color  var(--dur-fast) var(--ease-out),
+    transform     var(--dur-base) var(--spring),
+    box-shadow    var(--dur-base) var(--ease-out);
+}
+.qa-btn:hover  { transform: translateY(-3px) scale(1.04); box-shadow: 0 10px 24px rgba(0,0,0,0.3); }
+.qa-btn:active { transform: scale(0.92); transition-duration: var(--dur-instant); box-shadow: none; }
+
+.qw-btn {
+  transition:
+    background  var(--dur-fast)  var(--ease-out),
+    color       var(--dur-fast)  var(--ease-out),
+    transform   var(--dur-base)  var(--spring),
+    border-color var(--dur-fast) var(--ease-out);
+}
+.qw-btn:hover  { transform: translateY(-2px) scale(1.05); }
+.qw-btn:active { transform: scale(0.9); transition-duration: var(--dur-instant); }
+
+.interval-btn {
+  transition:
+    background   var(--dur-base) var(--spring-soft),
+    border-color var(--dur-fast) var(--ease-out),
+    color        var(--dur-fast) var(--ease-out),
+    transform    var(--dur-base) var(--spring);
+}
+.interval-btn:hover  { transform: scale(1.05); }
+.interval-btn:active { transform: scale(0.93); transition-duration: var(--dur-instant); }
+
+/* Activity type buttons */
+.act-type-btn {
+  transition:
+    background   var(--dur-base) var(--spring-soft),
+    border-color var(--dur-fast) var(--ease-out),
+    color        var(--dur-fast) var(--ease-out),
+    transform    var(--dur-base) var(--spring);
+}
+.act-type-btn:hover  { transform: translateY(-2px) scale(1.04); }
+.act-type-btn:active { transform: scale(0.93); transition-duration: var(--dur-instant); }
+
+/* ============================================================
+   WATER ANIMATIONS
+   ============================================================ */
+
+/* Bottle fill — super smooth */
+.water-fill, .big-water-fill {
+  transition: height 1.4s cubic-bezier(0.34, 1.1, 0.64, 1);
+}
+
+/* Waves — mesmerizing */
+.water-waves {
+  animation: wave 2.8s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+}
+@keyframes wave {
+  0%   { transform: scaleX(1)    translateY(0)    rotate(0deg);   border-radius: 50%; }
+  25%  { transform: scaleX(1.06) translateY(-3px) rotate(1deg);   border-radius: 45%; }
+  50%  { transform: scaleX(0.94) translateY(-6px) rotate(-1deg);  border-radius: 50%; }
+  75%  { transform: scaleX(1.04) translateY(-3px) rotate(0.5deg); border-radius: 47%; }
+  100% { transform: scaleX(1)    translateY(0)    rotate(0deg);   border-radius: 50%; }
+}
+
+/* Water ripple on add */
+@keyframes waterRipple {
+  0%   { transform: scale(0.8); opacity: 1; box-shadow: 0 0 0 0px rgba(77,158,255,0.5); }
+  50%  { transform: scale(1.08); box-shadow: 0 0 0 20px rgba(77,158,255,0); }
+  100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0px rgba(77,158,255,0); }
+}
+.water-added {
+  animation: waterRipple 0.6s var(--spring) !important;
+}
+
+/* Water log items stagger */
+.water-log-item {
+  animation: slideInLeft var(--dur-base) var(--spring) forwards;
+}
+.water-log-item:nth-child(1) { animation-delay: 0ms; }
+.water-log-item:nth-child(2) { animation-delay: 40ms; }
+.water-log-item:nth-child(3) { animation-delay: 80ms; }
+.water-log-item:nth-child(4) { animation-delay: 120ms; }
+@keyframes slideInLeft {
+  0%   { opacity: 0; transform: translateX(-14px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+/* Delete entry */
+.water-log-item.removing {
+  animation: slideOutRight 0.25s var(--ease-accel) forwards;
+}
+@keyframes slideOutRight {
+  0%   { opacity: 1; transform: translateX(0) scale(1); max-height: 50px; }
+  100% { opacity: 0; transform: translateX(40px) scale(0.95); max-height: 0; padding: 0; margin: 0; }
+}
+
+/* ============================================================
+   PROGRESS RINGS — smooth stroke animation
+   ============================================================ */
+.ring-fill {
+  transition: stroke-dashoffset 1.4s cubic-bezier(0.34, 1.1, 0.64, 1),
+              stroke             0.3s var(--ease-out);
+}
+.act-ring-fill {
+  transition: stroke-dashoffset 1.6s cubic-bezier(0.34, 1.1, 0.64, 1);
+}
+
+/* Health score bounce in */
+@keyframes scoreBounce {
+  0%   { transform: scale(0.5); opacity: 0; }
+  60%  { transform: scale(1.1); opacity: 1; }
+  80%  { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+.score-num.animate { animation: scoreBounce 0.7s var(--spring) forwards; }
+
+/* Number count-up glow */
+@keyframes numberGlow {
+  0%,100% { text-shadow: none; }
+  50%     { text-shadow: 0 0 20px rgba(77,158,255,0.4); }
+}
+.stat-value.counting { animation: numberGlow 0.8s ease; }
+
+/* ============================================================
+   MODAL ANIMATIONS — iOS sheet style
+   ============================================================ */
+.modal-backdrop {
+  animation: backdropIn var(--dur-base) var(--ease-out) forwards;
+}
+.modal-backdrop.closing {
+  animation: backdropOut var(--dur-fast) var(--ease-accel) forwards;
+}
+@keyframes backdropIn  { from { opacity: 0; backdrop-filter: blur(0px);  } to { opacity: 1; backdrop-filter: blur(12px); } }
+@keyframes backdropOut { from { opacity: 1; backdrop-filter: blur(12px); } to { opacity: 0; backdrop-filter: blur(0px);  } }
+
+.modal {
+  animation: sheetUp var(--dur-slow) var(--spring) forwards;
+}
+.modal-backdrop.closing .modal {
+  animation: sheetDown var(--dur-base) var(--ease-accel) forwards;
+}
+@keyframes sheetUp {
+  0%   { opacity: 0; transform: translateY(32px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0)    scale(1); }
+}
+@keyframes sheetDown {
+  0%   { opacity: 1; transform: translateY(0)    scale(1); }
+  100% { opacity: 0; transform: translateY(24px) scale(0.97); }
+}
+
+/* ============================================================
+   SIDEBAR — smooth slide
+   ============================================================ */
+.sidebar {
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+.sidebar-overlay {
+  transition: opacity var(--dur-base) var(--ease-out);
+  opacity: 0;
+}
+.sidebar-overlay.open {
+  opacity: 1;
+}
+
+/* ============================================================
+   NAV ITEMS
+   ============================================================ */
+.nav-item {
+  transition:
+    background  var(--dur-fast) var(--ease-out),
+    color       var(--dur-fast) var(--ease-out),
+    transform   var(--dur-base) var(--spring-soft),
+    padding-left var(--dur-base) var(--ease-out);
+}
+.nav-item:hover  { transform: translateX(2px); }
+.nav-item:active { transform: scale(0.97); transition-duration: var(--dur-instant); }
+.nav-item.active { transform: none; }
+
+/* Active indicator slide */
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 20px;
+  background: var(--primary);
+  border-radius: 0 3px 3px 0;
+  animation: indicatorIn var(--dur-base) var(--spring) forwards;
+}
+.nav-item { position: relative; }
+@keyframes indicatorIn {
+  0%   { height: 0; opacity: 0; }
+  100% { height: 20px; opacity: 1; }
+}
+
+/* Bottom nav items */
+.bn-item {
+  transition: color 180ms ease;
+}
+.bn-item:active .bn-icon {
+  transform: scale(0.86) !important;
+  transition-duration: 80ms !important;
+}
+.bn-item.active .bn-icon svg {
+  animation: iconBounce var(--dur-base) var(--spring);
+}
+@keyframes iconBounce {
+  0%   { transform: scale(0.7) translateY(4px); }
+  70%  { transform: scale(1.2) translateY(-2px); }
+  100% { transform: scale(1)   translateY(0); }
+}
+
+/* ============================================================
+   TOAST — smooth pop
+   ============================================================ */
+.toast {
+  transition: opacity var(--dur-base) var(--ease-out),
+              transform var(--dur-base) var(--spring);
+}
+.toast.show {
+  animation: toastPop var(--dur-base) var(--spring) forwards;
+}
+.toast.hiding {
+  animation: toastFade var(--dur-fast) var(--ease-accel) forwards;
+}
+@keyframes toastPop {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(16px) scale(0.92); }
+  60%  { transform: translateX(-50%) translateY(-3px)  scale(1.02); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0)    scale(1); }
+}
+@keyframes toastFade {
+  0%   { opacity: 1; transform: translateX(-50%) translateY(0)   scale(1);    }
+  100% { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.95); }
+}
+
+/* ============================================================
+   TOGGLE SWITCH — iOS feel
+   ============================================================ */
+.toggle-slider {
+  transition: background var(--dur-base) var(--spring-soft),
+              border-color var(--dur-fast) var(--ease-out);
+}
+.toggle-slider::before {
+  transition:
+    transform  var(--dur-base) var(--spring),
+    background var(--dur-fast) var(--ease-out),
+    width      var(--dur-fast) var(--spring-soft),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+/* Squish on press */
+.toggle-switch:active .toggle-slider::before {
+  width: 22px;
+  transition-duration: var(--dur-instant);
+}
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+  box-shadow: 0 2px 8px rgba(77,158,255,0.4);
+}
+
+/* ============================================================
+   MED SCHEDULE — check animation
+   ============================================================ */
+.med-sch-check {
+  transition:
+    background  var(--dur-base) var(--spring),
+    border-color var(--dur-fast) var(--ease-out),
+    transform   var(--dur-base) var(--spring),
+    color       var(--dur-fast) var(--ease-out);
+}
+.med-sch-check:hover  { transform: scale(1.1); }
+.med-sch-check:active { transform: scale(0.9); transition-duration: var(--dur-instant); }
+.med-sch-check.done  { animation: checkPop var(--dur-base) var(--spring); }
+@keyframes checkPop {
+  0%   { transform: scale(0.7); }
+  60%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Med schedule items stagger */
+.med-schedule-item {
+  animation: slideInUp var(--dur-base) var(--spring) backwards;
+}
+.med-schedule-item:nth-child(1) { animation-delay: 80ms; }
+.med-schedule-item:nth-child(2) { animation-delay: 140ms; }
+.med-schedule-item:nth-child(3) { animation-delay: 200ms; }
+.med-schedule-item:nth-child(4) { animation-delay: 260ms; }
+@keyframes slideInUp {
+  0%   { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   MEAL & ACTIVITY ITEMS
+   ============================================================ */
+.meal-item, .activity-item {
+  animation: fadeScaleIn var(--dur-base) var(--spring) backwards;
+  transition:
+    background  var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform   var(--dur-base) var(--spring);
+}
+.meal-item:hover, .activity-item:hover {
+  transform: translateX(3px);
+}
+@keyframes fadeScaleIn {
+  0%   { opacity: 0; transform: scale(0.97) translateY(8px); }
+  100% { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+/* ============================================================
+   MACRO BARS
+   ============================================================ */
+.macro-fill {
+  transition: width 1.6s cubic-bezier(0.34, 1.1, 0.64, 1);
+  animation: barGrow 1.6s cubic-bezier(0.34, 1.1, 0.64, 1) both;
+}
+@keyframes barGrow {
+  from { width: 0%; }
+}
+
+/* Calorie bar */
+.cal-fill {
+  transition: width 1.4s cubic-bezier(0.34, 1.1, 0.64, 1);
+}
+
+/* ============================================================
+   SIDEBAR USER CARD SHIMMER
+   ============================================================ */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+.user-card {
+  transition: background var(--dur-base) var(--ease-out);
+}
+
+/* ============================================================
+   COLOR DOT PICKER
+   ============================================================ */
+.color-dot {
+  transition:
+    transform   var(--dur-base) var(--spring),
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow  var(--dur-base) var(--ease-out);
+}
+.color-dot:hover  { transform: scale(1.2); }
+.color-dot:active { transform: scale(0.9); transition-duration: var(--dur-instant); }
+.color-dot.active { transform: scale(1.1); }
+
+/* ============================================================
+   INSIGHT DOT PULSE
+   ============================================================ */
+.insight-dot {
+  animation: insightPulse 2.5s ease-in-out infinite;
+}
+@keyframes insightPulse {
+  0%,100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+  50%     { transform: scale(1.2); box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+}
+
+/* ============================================================
+   PROFILE AVATAR
+   ============================================================ */
+.profile-avatar-big {
+  transition: transform var(--dur-base) var(--spring),
+              box-shadow var(--dur-slow) var(--ease-out);
+}
+.profile-avatar-big:hover {
+  transform: scale(1.07);
+  box-shadow: 0 16px 40px rgba(77,158,255,0.4);
+}
+
+/* ============================================================
+   SCROLL MOMENTUM
+   ============================================================ */
+.water-log, .med-schedule, .all-meds,
+.sidebar-nav, .meal-sections, .activity-list {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* ============================================================
+   GLOW EFFECTS — on health score
+   ============================================================ */
+.health-score-chip {
+  transition: transform var(--dur-base) var(--spring),
+              box-shadow var(--dur-slow) var(--ease-out);
+}
+.health-score-chip:hover {
+  transform: scale(1.04);
+  box-shadow: 0 8px 32px rgba(77,158,255,0.25);
+}
+
+/* ============================================================
+   CHECKBOX — satisfying click
+   ============================================================ */
+.check-item {
+  transition:
+    background   var(--dur-base) var(--spring-soft),
+    border-color var(--dur-fast) var(--ease-out),
+    color        var(--dur-fast) var(--ease-out),
+    transform    var(--dur-base) var(--spring);
+}
+.check-item:hover  { transform: translateY(-1px); }
+.check-item:active { transform: scale(0.95); transition-duration: var(--dur-instant); }
+.check-item:has(input:checked) { animation: checkItemPop var(--dur-base) var(--spring); }
+@keyframes checkItemPop {
+  0%   { transform: scale(0.95); }
+  60%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* ============================================================
+   LOGO DOT SPIN ON HOVER
+   ============================================================ */
+.logo-dot {
+  transition: transform var(--dur-slow) var(--spring),
+              box-shadow var(--dur-base) var(--ease-out);
+}
+.app-logo:hover .logo-dot {
+  transform: rotate(180deg) scale(1.1);
+  box-shadow: 0 6px 18px rgba(77,158,255,0.5);
+}
+
+/* ============================================================
+   FORM INPUT FOCUS ANIMATIONS
+   ============================================================ */
+input, select {
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow   var(--dur-base) var(--spring-soft),
+    background   var(--dur-fast) var(--ease-out),
+    transform    var(--dur-base) var(--spring-soft);
+}
+input:focus, select:focus {
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   CHART CARD HOVER
+   ============================================================ */
+.chart-card canvas {
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+.chart-card:hover canvas { opacity: 0.95; }
+
+/* ============================================================
+   API SETUP ICON FLOAT
+   ============================================================ */
+.api-setup-icon {
+  animation: float 4s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-8px); }
+}
+
+/* ============================================================
+   REDUCE MOTION — accessibility
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
