@@ -13,7 +13,58 @@ const _a = 'AQ.Ab8RN6INOPi7wCy';
 const _b = 'zURBkCZKbrcaJD5ka';
 const _c = 'ctb2mWYIlpYJxe7mZA';
 const GEMINI_KEY = _a + _b + _c;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+
+// Resilient AI fetch — tries v1 flash, falls back to v1beta pro
+async function geminiGenerate(prompt, maxTokens = 500, temp = 0.7) {
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { temperature: temp, maxOutputTokens: maxTokens }
+  };
+
+  // Try list of endpoints in order
+  const endpoints = [
+    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_KEY}`,
+  ];
+
+  let lastErr;
+  for (const url of endpoints) {
+    try {
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (data.error) { lastErr = new Error(data.error.message); continue; }
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text) return text.trim();
+    } catch(e) { lastErr = e; }
+  }
+  throw lastErr || new Error('All Gemini endpoints failed');
+}
+
+// Multi-turn chat version
+async function geminiChat(messages, maxTokens = 300) {
+  const body = {
+    contents: messages,
+    generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens }
+  };
+  const endpoints = [
+    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_KEY}`,
+  ];
+  let lastErr;
+  for (const url of endpoints) {
+    try {
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (data.error) { lastErr = new Error(data.error.message); continue; }
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text) return text.trim();
+    } catch(e) { lastErr = e; }
+  }
+  throw lastErr || new Error('All Gemini endpoints failed');
+}
 
 /* ============================================================
    INIT
@@ -318,15 +369,7 @@ async function rotateTip() {
 - Conditions: ${profile.conditions?.join(', ')||'none'}
 Be specific, actionable, and motivating. No emojis. Plain text only.`;
 
-    const res = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.8, maxOutputTokens: 80 } })
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    const tip = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const tip = await geminiGenerate(prompt, 80, 0.8);
     if (tip) {
       el.textContent = tip;
       Storage.set('ai_daily_tip', { date: today, tip });
@@ -649,14 +692,7 @@ Respond in this format:
 - If concerns: List each concern in one line starting with "⚠"
 Keep it brief and clear. Do not give dosage advice. Max 5 lines.`;
 
-    const res = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 150 } })
-    });
-    const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const text = await geminiGenerate(prompt, 150, 0.2);
 
     // Show result in a toast-style card on the meds page
     const container = document.getElementById('med-safety-result');
@@ -667,10 +703,10 @@ Keep it brief and clear. Do not give dosage advice. Max 5 lines.`;
       </div>`;
       lucide.createIcons();
     } else {
-      showToast(text || 'Safety check complete');
+      showToast('Safety check complete');
     }
   } catch(e) {
-    showToast('Safety check failed — try again');
+    showToast('Safety check failed: ' + e.message);
   }
   if (btn) { btn.textContent = 'Check Safety'; btn.disabled = false; }
 }
@@ -755,14 +791,7 @@ async function aiLookupCalories() {
 If you cannot determine exact calories, give a reasonable estimate.
 Respond with ONLY the number. No text, no units, just the integer.`;
 
-    const res = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.1, maxOutputTokens: 10 } })
-    });
-    const data = await res.json();
-    const raw  = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const raw = await geminiGenerate(prompt, 10, 0.1);
     const cal  = parseInt(raw);
     if (!isNaN(cal) && cal > 0) {
       if (calEl) calEl.value = cal;
@@ -771,7 +800,7 @@ Respond with ONLY the number. No text, no units, just the integer.`;
       showToast('Could not estimate — enter manually');
     }
   } catch(e) {
-    showToast('AI lookup failed');
+    showToast('AI lookup failed: ' + e.message);
   }
   if (btnEl) { btnEl.textContent = 'AI Fill'; btnEl.disabled = false; }
 }
@@ -1037,22 +1066,7 @@ Please provide:
 Keep it friendly, motivating, and specific. Use emojis. Format with clear sections using **bold headers**.`;
 
   try {
-    const response = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
-      })
-    });
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error?.message || 'API Error');
-    }
-
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from AI.';
+    const text = await geminiGenerate(prompt, 1000, 0.7);
 
     // Format response
     const formatted = text
@@ -1373,14 +1387,7 @@ async function aiWaterSuggestion() {
 - Weight: ${profile.weight||70}kg, Age: ${profile.age||30}
 Be specific with amounts. No emojis. Plain text only.`;
 
-    const res = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 60 } })
-    });
-    const data = await res.json();
-    const tip  = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const tip = await geminiGenerate(prompt, 60, 0.7);
     if (tip && el) {
       el.textContent = tip;
       el.style.display = 'block';
@@ -1460,16 +1467,7 @@ Answer their question helpfully and concisely. If it's a general health question
       ...chatHistory.slice(-10)  // last 10 messages for context
     ];
 
-    const res = await fetch(GEMINI_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: messages,
-        generationConfig: { temperature: 0.7, maxOutputTokens: 300 }
-      })
-    });
-    const data = await res.json();
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'Sorry, I could not process that.';
+    const reply = await geminiChat(messages, 300);
 
     chatHistory.push({ role: 'model', parts: [{ text: reply }] });
 
