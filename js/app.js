@@ -1057,14 +1057,13 @@ WEEKLY WATER (last 7 days, ml): ${weekWater.join(', ')}
 
 BMI: ${calcBMI(profile.height, profile.weight)?.value || 'N/A'} (${calcBMI(profile.height, profile.weight)?.category || 'N/A'})
 
-Please provide:
-1. **Overall Health Assessment** — A summary of today's performance
-2. **Water Intake Analysis** — Specific advice based on their intake pattern
-3. **Key Health Insights** — 2-3 important observations
-4. **Action Items for Tomorrow** — 3 specific, achievable goals
-5. **Personalized Tips** — Based on their conditions and profile
+Please provide a very brief, scannable report:
+1. **Assessment**: 1 short sentence about today.
+2. **Water**: 1 short sentence.
+3. **Action**: 1 achievable goal for tomorrow.
+4. **Tip**: 1 short tip based on profile.
 
-Keep it friendly, motivating, and specific. Use emojis. Format with clear sections using **bold headers**.`;
+CRITICAL: Keep your entire response extremely short. Do NOT write paragraphs. Max 1-2 sentences per section. Use emojis and **bold headers**.`;
 
   try {
     const text = await geminiGenerate(prompt, 1000, 0.7);
@@ -1460,7 +1459,7 @@ async function sendChatMessage() {
 - Today: Water ${totalWater}ml, Calories ${totalCal}kcal, Activity ${totalAct}min
 - Medications: ${meds.map(m=>m.name).join(', ')||'none'}
 - Conditions: ${profile.conditions?.join(', ')||'none'}
-Answer their question helpfully and concisely. If it's a general health question, answer clearly. If it's medical advice, remind them to consult a doctor.`;
+CRITICAL: Answer helpfully but keep your response EXTREMELY short and conversational (max 2-3 sentences). Do not give long lectures. If it's medical advice, remind them to consult a doctor briefly.`;
 
     const messages = [
       { role: 'user', parts: [{ text: systemCtx }] },
