@@ -16,10 +16,10 @@ const GEMINI_KEY = _a + _b + _c;
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_KEY}`;
 
 // Resilient AI fetch — tries multiple active models
-async function geminiGenerate(prompt, maxTokens = 500, temp = 0.7) {
+async function geminiGenerate(prompt, maxTokens = null, temp = 0.7) {
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: temp, maxOutputTokens: maxTokens }
+    generationConfig: { temperature: temp }
   };
 
   // Try list of active 2026 endpoints in order
@@ -43,10 +43,10 @@ async function geminiGenerate(prompt, maxTokens = 500, temp = 0.7) {
 }
 
 // Multi-turn chat version
-async function geminiChat(messages, maxTokens = 300) {
+async function geminiChat(messages, maxTokens = null) {
   const body = {
     contents: messages,
-    generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens }
+    generationConfig: { temperature: 0.7 }
   };
   const endpoints = [
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_KEY}`,
@@ -792,7 +792,8 @@ If you cannot determine exact calories, give a reasonable estimate.
 Respond with ONLY the number. No text, no units, just the integer.`;
 
     const raw = await geminiGenerate(prompt, 10, 0.1);
-    const cal  = parseInt(raw);
+    const calStr = raw ? raw.replace(/[^0-9]/g, '') : '';
+    const cal  = parseInt(calStr);
     if (!isNaN(cal) && cal > 0) {
       if (calEl) calEl.value = cal;
       showToast(`AI: ~${cal} kcal for ${name}`);
@@ -1472,7 +1473,10 @@ Answer their question helpfully and concisely. If it's a general health question
     chatHistory.push({ role: 'model', parts: [{ text: reply }] });
 
     document.getElementById(typingId)?.remove();
-    appendChatMessage('ai', reply.replace(/\n/g, '<br>'));
+    let formattedReply = reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    formattedReply = formattedReply.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    formattedReply = formattedReply.replace(/\n/g, '<br>');
+    appendChatMessage('ai', formattedReply);
 
   } catch(e) {
     document.getElementById(typingId)?.remove();
