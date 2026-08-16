@@ -1098,8 +1098,11 @@
             <input type="text" id="meal-qty-input" placeholder="e.g. 1 bowl" />
           </div>
           <div class="form-group">
-            <label>Calories (kcal)</label>
-            <input type="number" id="meal-cal-input" placeholder="350" />
+            <label>Calories (kcal) <span style="font-size:10px;color:var(--primary);font-weight:600;">— AI can fill this</span></label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="number" id="meal-cal-input" placeholder="350" style="flex:1" />
+              <button id="ai-cal-btn" class="btn-sm" onclick="aiLookupCalories()" style="white-space:nowrap;background:var(--primary);color:#fff;border:none;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;">AI Fill</button>
+            </div>
           </div>
           <div class="form-group">
             <label>Protein (g)</label>
@@ -1169,6 +1172,34 @@
   <div id="toast" class="toast hidden"></div>
   <!-- Sidebar overlay -->
   <div class="sidebar-overlay hidden" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- ===== FLOATING AI CHAT WIDGET ===== -->
+  <div id="ai-chat-panel" class="ai-chat-panel">
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-avatar"><i data-lucide="brain-circuit" width="18" height="18"></i></div>
+        <div>
+          <div class="chat-title">HealthAI Assistant</div>
+          <div class="chat-subtitle">Powered by Gemini</div>
+        </div>
+      </div>
+      <button class="chat-close" onclick="toggleAIChat()">
+        <i data-lucide="x" width="16" height="16"></i>
+      </button>
+    </div>
+    <div class="chat-log" id="chat-log"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Ask anything about your health..." />
+      <button class="chat-send" onclick="sendChatMessage()">
+        <i data-lucide="send" width="16" height="16"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- AI Chat FAB button -->
+  <button class="ai-chat-fab" onclick="toggleAIChat()" title="Ask HealthAI">
+    <i data-lucide="message-circle" width="22" height="22"></i>
+  </button>
 
   <script src="js/storage.js"></script>
   <script src="js/notifications.js"></script>

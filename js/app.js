@@ -284,10 +284,54 @@ const tips = [
   'Chronic stress elevates cortisol levels, which can raise blood pressure and suppress immune function.',
   'Eating slowly and mindfully supports better digestion and helps prevent overconsumption.',
 ];
-function rotateTip() {
-  const tip = tips[Math.floor(Math.random() * tips.length)];
+// AI-powered daily briefing (replaces static tips)
+async function rotateTip() {
   const el = document.getElementById('daily-tip');
-  if (el) el.textContent = tip;
+  if (!el) return;
+
+  // Check if we already generated a tip today
+  const saved = Storage.get('ai_daily_tip');
+  const today = new Date().toDateString();
+  if (saved && saved.date === today) {
+    el.textContent = saved.tip;
+    return;
+  }
+
+  // Show a static tip first while AI loads
+  el.textContent = tips[Math.floor(Math.random() * tips.length)];
+
+  // Generate AI tip in background
+  try {
+    const profile  = Storage.getProfile();
+    const water    = Storage.getTodayWater();
+    const act      = Storage.getTodayActivity();
+    const meds     = Storage.getMedications();
+    const totalWater = water.entries.reduce((s,e) => s+e.ml, 0);
+    const waterGoal  = water.goal || Storage.getSettings().waterGoal || 2000;
+    const totalAct   = act.sessions.reduce((s,a) => s+a.duration, 0);
+
+    const prompt = `You are a friendly health coach. Give ONE short, specific health tip (max 2 sentences) for this person:
+- Age: ${profile.age||'unknown'}, Weight: ${profile.weight||'unknown'}kg
+- Water today: ${totalWater}ml of ${waterGoal}ml goal
+- Activity today: ${totalAct} minutes
+- Medications: ${meds.map(m=>m.name).join(', ')||'none'}
+- Conditions: ${profile.conditions?.join(', ')||'none'}
+Be specific, actionable, and motivating. No emojis. Plain text only.`;
+
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.8, maxOutputTokens: 80 } })
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const tip = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (tip) {
+      el.textContent = tip;
+      Storage.set('ai_daily_tip', { date: today, tip });
+    }
+  } catch(e) { /* silently keep static tip */ }
 }
 
 /* ============================================================
@@ -585,6 +629,52 @@ function deleteMedication(id) {
   updateMedBadge();
 }
 
+// AI Feature 2: Medication safety check
+async function aiMedSafetyCheck() {
+  const meds = Storage.getMedications();
+  if (meds.length < 2) {
+    showToast('Add at least 2 medications to check for interactions');
+    return;
+  }
+  const btn = document.getElementById('med-safety-btn');
+  if (btn) { btn.textContent = 'Checking...'; btn.disabled = true; }
+
+  try {
+    const medList = meds.map(m => `${m.name} (${m.dose})`).join(', ');
+    const prompt = `You are a medical safety assistant. Check these medications for potential interactions:
+${medList}
+
+Respond in this format:
+- If safe: "No major interactions found between these medications."
+- If concerns: List each concern in one line starting with "⚠"
+Keep it brief and clear. Do not give dosage advice. Max 5 lines.`;
+
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.2, maxOutputTokens: 150 } })
+    });
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+    // Show result in a toast-style card on the meds page
+    const container = document.getElementById('med-safety-result');
+    if (container && text) {
+      container.innerHTML = `<div class="med-safety-card">
+        <div class="med-safety-header"><i data-lucide="shield-check" width="16" height="16"></i> AI Safety Check</div>
+        <p>${text.replace(/\n/g,'<br>')}</p>
+      </div>`;
+      lucide.createIcons();
+    } else {
+      showToast(text || 'Safety check complete');
+    }
+  } catch(e) {
+    showToast('Safety check failed — try again');
+  }
+  if (btn) { btn.textContent = 'Check Safety'; btn.disabled = false; }
+}
+
 function updateMedBadge() {
   const meds = Storage.getMedications();
   const pending = meds.filter(m =>
@@ -646,6 +736,45 @@ function loadNutritionPage() {
 }
 
 function openAddMealModal() { openModal('add-meal-modal'); }
+
+// AI Feature 1: Auto-fill calories when user types a meal name
+async function aiLookupCalories() {
+  const nameEl = document.getElementById('meal-name-input');
+  const calEl  = document.getElementById('meal-cal-input');
+  const qtyEl  = document.getElementById('meal-qty-input');
+  const btnEl  = document.getElementById('ai-cal-btn');
+  const name   = nameEl?.value?.trim();
+  if (!name || name.length < 3) return;
+
+  const qty = qtyEl?.value?.trim() || '1 serving';
+
+  if (btnEl) { btnEl.textContent = 'Searching...'; btnEl.disabled = true; }
+
+  try {
+    const prompt = `Give ONLY the calorie count (a single number) for: "${name}" (${qty}).
+If you cannot determine exact calories, give a reasonable estimate.
+Respond with ONLY the number. No text, no units, just the integer.`;
+
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.1, maxOutputTokens: 10 } })
+    });
+    const data = await res.json();
+    const raw  = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const cal  = parseInt(raw);
+    if (!isNaN(cal) && cal > 0) {
+      if (calEl) calEl.value = cal;
+      showToast(`AI: ~${cal} kcal for ${name}`);
+    } else {
+      showToast('Could not estimate — enter manually');
+    }
+  } catch(e) {
+    showToast('AI lookup failed');
+  }
+  if (btnEl) { btnEl.textContent = 'AI Fill'; btnEl.disabled = false; }
+}
 
 function saveMeal() {
   const name = document.getElementById('meal-name-input').value.trim();
@@ -1215,3 +1344,148 @@ function requestNotificationPermission() {
     document.documentElement.setAttribute('data-theme', 'dark');
   }
 })();
+
+/* ============================================================
+   AI FEATURE 3 — Smart Water Suggestion
+   ============================================================ */
+async function aiWaterSuggestion() {
+  const btn = document.getElementById('ai-water-suggest-btn');
+  const el  = document.getElementById('ai-water-tip');
+  if (!el) return;
+
+  if (btn) { btn.textContent = 'Thinking...'; btn.disabled = true; }
+  el.textContent = '';
+
+  const profile  = Storage.getProfile();
+  const water    = Storage.getTodayWater();
+  const act      = Storage.getTodayActivity();
+  const settings = Storage.getSettings();
+  const totalWater = water.entries.reduce((s,e) => s+e.ml, 0);
+  const waterGoal  = water.goal || settings.waterGoal || 2000;
+  const totalAct   = act.sessions.reduce((s,a) => s+(a.duration||0), 0);
+  const now        = new Date().getHours();
+
+  try {
+    const prompt = `You are a hydration coach. Give ONE specific, actionable water intake recommendation (1-2 sentences) for:
+- Time of day: ${now}:00 hours
+- Water drunk today: ${totalWater}ml of ${waterGoal}ml goal
+- Exercise today: ${totalAct} minutes
+- Weight: ${profile.weight||70}kg, Age: ${profile.age||30}
+Be specific with amounts. No emojis. Plain text only.`;
+
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 60 } })
+    });
+    const data = await res.json();
+    const tip  = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (tip && el) {
+      el.textContent = tip;
+      el.style.display = 'block';
+    }
+  } catch(e) {
+    if (el) el.textContent = 'Could not load suggestion. Try again.';
+  }
+  if (btn) { btn.textContent = 'AI Suggest'; btn.disabled = false; }
+}
+
+/* ============================================================
+   AI FEATURE 4 — AI Health Chat
+   ============================================================ */
+let chatHistory = [];
+
+function toggleAIChat() {
+  const panel = document.getElementById('ai-chat-panel');
+  if (!panel) return;
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open', !isOpen);
+  if (!isOpen) {
+    document.getElementById('chat-input')?.focus();
+    if (chatHistory.length === 0) {
+      appendChatMessage('ai', 'Hi! I am your personal health assistant. Ask me anything about your health, diet, or medications.');
+    }
+  }
+}
+
+function appendChatMessage(role, text) {
+  const log = document.getElementById('chat-log');
+  if (!log) return;
+  const div = document.createElement('div');
+  div.className = `chat-msg chat-${role}`;
+  div.innerHTML = `<div class="chat-bubble">${text}</div>`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const msg   = input?.value?.trim();
+  if (!msg) return;
+
+  input.value = '';
+  appendChatMessage('user', msg);
+  chatHistory.push({ role: 'user', parts: [{ text: msg }] });
+
+  // Show typing indicator
+  const typingId = 'typing-' + Date.now();
+  const log = document.getElementById('chat-log');
+  if (log) {
+    log.innerHTML += `<div id="${typingId}" class="chat-msg chat-ai"><div class="chat-bubble chat-typing"><span></span><span></span><span></span></div></div>`;
+    log.scrollTop = log.scrollHeight;
+  }
+
+  try {
+    // Build context from user profile + today's data
+    const profile = Storage.getProfile();
+    const water   = Storage.getTodayWater();
+    const nut     = Storage.getTodayNutrition();
+    const act     = Storage.getTodayActivity();
+    const meds    = Storage.getMedications();
+    const totalWater = water.entries.reduce((s,e) => s+e.ml, 0);
+    const totalCal   = nut.meals.reduce((s,m) => s+(m.cal||0), 0);
+    const totalAct   = act.sessions.reduce((s,a) => s+(a.duration||0), 0);
+
+    const systemCtx = `You are HealthAI, a friendly personal health assistant. User data:
+- Name: ${profile.name||'User'}, Age: ${profile.age}, Weight: ${profile.weight}kg, Height: ${profile.height}cm
+- Today: Water ${totalWater}ml, Calories ${totalCal}kcal, Activity ${totalAct}min
+- Medications: ${meds.map(m=>m.name).join(', ')||'none'}
+- Conditions: ${profile.conditions?.join(', ')||'none'}
+Answer their question helpfully and concisely. If it's a general health question, answer clearly. If it's medical advice, remind them to consult a doctor.`;
+
+    const messages = [
+      { role: 'user', parts: [{ text: systemCtx }] },
+      { role: 'model', parts: [{ text: 'Understood, I have your health profile loaded.' }] },
+      ...chatHistory.slice(-10)  // last 10 messages for context
+    ];
+
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: messages,
+        generationConfig: { temperature: 0.7, maxOutputTokens: 300 }
+      })
+    });
+    const data = await res.json();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'Sorry, I could not process that.';
+
+    chatHistory.push({ role: 'model', parts: [{ text: reply }] });
+
+    document.getElementById(typingId)?.remove();
+    appendChatMessage('ai', reply.replace(/\n/g, '<br>'));
+
+  } catch(e) {
+    document.getElementById(typingId)?.remove();
+    appendChatMessage('ai', 'Connection error. Please try again.');
+  }
+}
+
+// Send on Enter key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && document.activeElement?.id === 'chat-input') {
+    sendChatMessage();
+  }
+});
+
