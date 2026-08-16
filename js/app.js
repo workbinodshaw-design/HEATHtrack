@@ -1077,17 +1077,24 @@ CRITICAL: Keep your entire response extremely short. Do NOT write paragraphs. Ma
 
     reportEl.innerHTML = `<div class="ai-report-content">${formatted}</div>`;
 
-    // Generate quick suggestions
-    const suggestions = [
-      { icon: 'Water', text: totalWater < water.goal ? `Drink ${water.goal - totalWater}ml more water today to hit your goal.` : 'Great job hitting your water goal today!' },
-      { icon: 'Activity', text: totalAct < 30 ? 'Try a 30-minute walk tomorrow — even a short walk helps.' : `Excellent! You were active for ${totalAct} minutes today.` },
-      { icon: 'Pill', text: meds.length ? 'Set your medication reminders to never miss a dose.' : 'Consider logging your medications for better health tracking.' },
-    ];
-
-    sugEl.innerHTML = suggestions.map(s =>
-      `<div class="suggestion-item"><span class="sug-icon"><i data-lucide="${s.icon.toLowerCase()}" width="16" height="16"></i></span><span class="sug-text">${s.text}</span></div>`
-    ).join('');
-    lucide.createIcons();
+    // Generate REAL AI suggestions
+    sugEl.innerHTML = '<div style="text-align:center; padding: 10px; color: #aaa;">Generating...</div>';
+    try {
+      const sugPrompt = `Based on: Water ${totalWater}/${water.goal}ml, Activity ${totalAct}min, Meds ${meds.length}. 
+Provide EXACTLY 3 short, personalized health tips (1 sentence each). 
+Return ONLY a valid JSON array of 3 strings. No markdown, no intro. Example: ["Tip 1", "Tip 2", "Tip 3"]`;
+      const sugRaw = await geminiGenerate(sugPrompt);
+      const sugClean = sugRaw.replace(/```json/gi, '').replace(/```/g, '').trim();
+      const sugArray = JSON.parse(sugClean);
+      
+      const icons = ['zap', 'activity', 'heart'];
+      sugEl.innerHTML = sugArray.slice(0,3).map((text, i) =>
+        `<div class="suggestion-item"><span class="sug-icon"><i data-lucide="${icons[i] || 'sparkles'}" width="16" height="16"></i></span><span class="sug-text">${text}</span></div>`
+      ).join('');
+      lucide.createIcons();
+    } catch(e) {
+      sugEl.innerHTML = '<div class="suggestion-item"><span class="sug-text" style="color: #ff6b6b;">AI Suggestions unavailable. Try again.</span></div>';
+    }
 
   } catch (err) {
     reportEl.innerHTML = `<div class="ai-empty"><div class="ai-empty-icon">❌</div><p>Error: ${err.message}<br><small>Check your API key or try again.</small></p></div>`;
