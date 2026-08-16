@@ -1372,6 +1372,18 @@ function closeSidebar() {
   document.getElementById('sidebar-overlay').classList.remove('open');
 }
 
+// Close sidebar when clicking outside of it
+document.addEventListener('click', function(e) {
+  const sidebar = document.getElementById('sidebar');
+  const menuBtn = document.querySelector('.menu-btn');
+  if (!sidebar) return;
+  if (sidebar.classList.contains('open') &&
+      !sidebar.contains(e.target) &&
+      !(menuBtn && menuBtn.contains(e.target))) {
+    closeSidebar();
+  }
+});
+
 // Theme toggle
 function toggleTheme() {
   const html = document.documentElement;
