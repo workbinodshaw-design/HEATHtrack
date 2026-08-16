@@ -13,20 +13,20 @@ const _a = 'AQ.Ab8RN6INOPi7wCy';
 const _b = 'zURBkCZKbrcaJD5ka';
 const _c = 'ctb2mWYIlpYJxe7mZA';
 const GEMINI_KEY = _a + _b + _c;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_KEY}`;
 
-// Resilient AI fetch — tries v1 flash, falls back to v1beta pro
+// Resilient AI fetch — tries multiple active models
 async function geminiGenerate(prompt, maxTokens = 500, temp = 0.7) {
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: { temperature: temp, maxOutputTokens: maxTokens }
   };
 
-  // Try list of endpoints in order
+  // Try list of active 2026 endpoints in order
   const endpoints = [
-    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_KEY}`,
   ];
 
   let lastErr;
@@ -49,9 +49,9 @@ async function geminiChat(messages, maxTokens = 300) {
     generationConfig: { temperature: 0.7, maxOutputTokens: maxTokens }
   };
   const endpoints = [
-    `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_KEY}`,
   ];
   let lastErr;
   for (const url of endpoints) {
