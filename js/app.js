@@ -13,7 +13,7 @@ const _a = 'AQ.Ab8RN6INOPi7wCy';
 const _b = 'zURBkCZKbrcaJD5ka';
 const _c = 'ctb2mWYIlpYJxe7mZA';
 const GEMINI_KEY = _a + _b + _c;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
 
 /* ============================================================
    INIT
