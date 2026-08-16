@@ -1897,3 +1897,48 @@ canvas { border-radius: var(--r-sm); }
   .gam-chip { padding: 5px 7px; }
   .topbar-center { max-width: 80px; }
 }
+
+
+/* ============================================================
+   TOPBAR — TRANSPARENT GLASS OVERRIDE (final)
+   ============================================================ */
+.topbar {
+  background: rgba(18, 18, 24, 0.55) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+[data-theme="light"] .topbar {
+  background: rgba(248, 249, 252, 0.65) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Fix chip text visibility */
+.gam-chip {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+.streak-chip {
+  background: rgba(255, 149, 0, 0.18) !important;
+  color: #FF9500 !important;
+  border: 1px solid rgba(255, 149, 0, 0.35) !important;
+}
+
+.level-chip {
+  background: rgba(59, 130, 246, 0.18) !important;
+  color: #60a5fa !important;
+  border: 1px solid rgba(59, 130, 246, 0.35) !important;
+}
+
+.gam-chip span:not(.gam-icon) {
+  color: inherit !important;
+  display: inline !important;
+}
+
+/* XP bar on glass */
+.xp-bar-wrap {
+  background: rgba(255, 255, 255, 0.1) !important;
+}

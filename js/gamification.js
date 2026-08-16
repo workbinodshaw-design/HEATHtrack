@@ -84,7 +84,7 @@ const Gamification = {
     const progressEl = document.getElementById('topbar-level-progress');
 
     if (levelEl) levelEl.textContent = 'Lvl ' + data.level;
-    if (streakEl) streakEl.textContent = data.streak + ' day' + (data.streak !== 1 ? 's' : '');
+    if (streakEl) streakEl.textContent = data.streak > 0 ? data.streak + (data.streak !== 1 ? ' days' : ' day') : 'Start!';
 
     const currentBase = Math.pow(data.level - 1, 2) * 100;
     const nextBase    = Math.pow(data.level, 2) * 100;
