@@ -1376,11 +1376,11 @@ function closeSidebar() {
 function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.getAttribute('data-theme') === 'dark';
-  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-  document.getElementById('theme-label').textContent = isDark ? 'Dark Mode' : 'Light Mode';
-  const icon = document.getElementById('theme-icon');
-  icon.setAttribute('data-lucide', isDark ? 'moon' : 'sun');
-  Storage.saveSettings({ theme: isDark ? 'light' : 'dark' });
+  const newTheme = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', newTheme);
+  const lbl = document.getElementById('theme-label');
+  if (lbl) lbl.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+  Storage.saveSettings({ theme: newTheme });
   lucide.createIcons();
 }
 
@@ -1397,12 +1397,13 @@ function requestNotificationPermission() {
   });
 }
 
-// Load saved theme
+// Load saved theme on startup
 (function() {
   const s = Storage.getSettings();
-  if (s.theme === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-  }
+  const theme = s.theme || 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  const lbl = document.getElementById('theme-label');
+  if (lbl) lbl.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
 })();
 
 /* ============================================================

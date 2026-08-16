@@ -1942,3 +1942,121 @@ canvas { border-radius: var(--r-sm); }
 .xp-bar-wrap {
   background: rgba(255, 255, 255, 0.1) !important;
 }
+
+
+/* ============================================================
+   LIGHT THEME — Complete production-quality overrides
+   ============================================================ */
+[data-theme="light"] {
+  --bg:            #f0f2f5;
+  --bg-2:          #f8f9fc;
+  --surface:       #ffffff;
+  --surface-2:     #f2f2f7;
+  --surface-3:     #e5e5ea;
+  --glass:         rgba(0,0,0,0.04);
+  --glass-border:  rgba(0,0,0,0.09);
+  --glass-hover:   rgba(0,0,0,0.06);
+  --text:          #1a1a1e;
+  --text-2:        rgba(60,60,67,0.65);
+  --text-3:        rgba(60,60,67,0.35);
+  --text-inv:      #ffffff;
+  --primary:       #007aff;
+  --primary-dim:   rgba(0,122,255,0.12);
+  --sidebar-bg:    #ffffff;
+  --border:        rgba(0,0,0,0.09);
+  --green:         #1a9e41;
+  --orange:        #c96a00;
+}
+
+/* Sidebar in light mode */
+[data-theme="light"] .sidebar {
+  background: #ffffff;
+  border-right: 1px solid rgba(0,0,0,0.08);
+}
+[data-theme="light"] .sidebar-logo span,
+[data-theme="light"] .sidebar-header { color: #1a1a1e; }
+[data-theme="light"] .nav-item { color: rgba(60,60,67,0.75); }
+[data-theme="light"] .nav-item:hover,
+[data-theme="light"] .nav-item.active { background: rgba(0,122,255,0.08); color: #007aff; }
+[data-theme="light"] .nav-group-label { color: rgba(60,60,67,0.45); }
+[data-theme="light"] .sidebar-footer { border-top: 1px solid rgba(0,0,0,0.08); }
+[data-theme="light"] .theme-toggle { background: rgba(0,0,0,0.05); color: rgba(60,60,67,0.7); }
+
+/* Topbar in light mode */
+[data-theme="light"] .topbar {
+  background: rgba(248, 249, 252, 0.72) !important;
+  border-bottom: 1px solid rgba(0,0,0,0.09) !important;
+}
+[data-theme="light"] .topbar-title { color: #1a1a1e; }
+[data-theme="light"] .menu-btn { color: #1a1a1e; }
+[data-theme="light"] .xp-bar-wrap { background: rgba(0,0,0,0.1) !important; }
+
+/* Cards in light mode */
+[data-theme="light"] .card {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.07);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+[data-theme="light"] .card::before { background: none; }
+[data-theme="light"] .card h3,
+[data-theme="light"] .card-header h3 { color: #1a1a1e; }
+
+/* Bottom nav in light */
+[data-theme="light"] .bottom-nav {
+  background: rgba(255,255,255,0.9);
+  border-top: 1px solid rgba(0,0,0,0.09);
+}
+[data-theme="light"] .bottom-nav-item { color: rgba(60,60,67,0.5); }
+[data-theme="light"] .bottom-nav-item.active { color: #007aff; }
+
+/* Stat cards light */
+[data-theme="light"] .stat-card {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.07);
+}
+[data-theme="light"] .stat-value { color: #1a1a1e; }
+[data-theme="light"] .stat-label { color: rgba(60,60,67,0.55); }
+
+/* Health score chip light */
+[data-theme="light"] .health-score-chip {
+  background: rgba(26,158,65,0.08);
+  border: 1px solid rgba(26,158,65,0.2);
+}
+[data-theme="light"] .score-num { color: #1a9e41; }
+
+/* Gam chips light */
+[data-theme="light"] .streak-chip {
+  background: rgba(201,106,0,0.1);
+  color: #c96a00;
+  border-color: rgba(201,106,0,0.25);
+}
+[data-theme="light"] .level-chip {
+  background: rgba(0,122,255,0.1);
+  color: #007aff;
+  border-color: rgba(0,122,255,0.25);
+}
+
+/* Modals light */
+[data-theme="light"] .modal-box {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+[data-theme="light"] .modal-header h2 { color: #1a1a1e; }
+[data-theme="light"] .form-group label { color: rgba(60,60,67,0.7); }
+[data-theme="light"] .form-group input,
+[data-theme="light"] .form-group select,
+[data-theme="light"] .form-group textarea {
+  background: #f2f2f7;
+  border: 1px solid rgba(0,0,0,0.12);
+  color: #1a1a1e;
+}
+
+/* Toast light */
+[data-theme="light"] .toast { background: #1a1a20; color: #fff; }
+
+/* Body noise off */
+[data-theme="light"] body::before { opacity: 0; }
+
+/* Page header text light */
+[data-theme="light"] .greeting { color: #1a1a1e; }
+[data-theme="light"] .greeting-sub { color: rgba(60,60,67,0.6); }
