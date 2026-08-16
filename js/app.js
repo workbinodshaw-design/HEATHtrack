@@ -291,6 +291,13 @@ function loadDashboard() {
   // Charts
   Charts.drawWeeklyWater('weekly-water-chart');
 
+  // Sync today's data into history so charts are always accurate
+  Storage.saveWaterHistory(water.entries.reduce(function(s,e){return s+e.ml;},0));
+  Storage.saveCalHistory(nut.meals.reduce(function(s,m){return s+(m.cal||0);},0));
+  Storage.saveActHistory(act.sessions.reduce(function(s,a){return s+(a.duration||0);},0));
+  Charts.drawWeeklyCalories('weekly-cal-chart-dash');
+  Charts.drawWeeklyActivity('weekly-act-chart-dash');
+
   // Daily tip
   rotateTip();
 }

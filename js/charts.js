@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    HEALTHAI — CHARTS MODULE
    Chart.js wrappers for all visualizations
    ============================================================ */
@@ -176,14 +176,34 @@ const Charts = {
     });
   },
 
-  // Med Adherence Chart
+  // Med Adherence Chart — REAL data from localStorage
   drawMedAdherence(canvasId) {
     this._destroy(canvasId);
     const ctx = document.getElementById(canvasId);
     if (!ctx) return;
 
-    // Mock adherence data for demo (0-100%)
-    const data = [90, 80, 100, 70, 100, 85, 95];
+    // Build real 7-day adherence data
+    const meds = Storage.getMedications();
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateKey = d.toISOString().slice(0, 10);
+
+      if (!meds.length) { data.push(0); continue; }
+
+      let taken = 0, total = 0;
+      meds.forEach(med => {
+        if (med.times && med.times.length) {
+          med.times.forEach(t => {
+            total++;
+            const key = dateKey + '_' + t;
+            if (med.takenDates && med.takenDates[key]) taken++;
+          });
+        }
+      });
+      data.push(total > 0 ? Math.round(taken / total * 100) : 0);
+    }
 
     this.instances[canvasId] = new Chart(ctx, {
       type: 'bar',
@@ -191,7 +211,7 @@ const Charts = {
         labels: this._weekLabels(),
         datasets: [{
           data,
-          backgroundColor: data.map(v => v === 100 ? 'hsl(160, 68%, 44%)' : v >= 80 ? 'hsl(210, 90%, 56%)' : 'hsl(28, 90%, 56%)'),
+          backgroundColor: data.map(v => v >= 100 ? 'hsl(160, 68%, 44%)' : v >= 60 ? 'hsl(210, 90%, 56%)' : v > 0 ? 'hsl(28, 90%, 56%)' : 'rgba(255,255,255,0.08)'),
           borderRadius: 8,
           borderSkipped: false,
         }]
@@ -206,7 +226,7 @@ const Charts = {
           ...this._defaults().plugins,
           tooltip: {
             ...this._defaults().plugins.tooltip,
-            callbacks: { label: ctx => `${ctx.raw}% adherence` }
+            callbacks: { label: ctx => ctx.raw + '% taken' }
           }
         }
       }
