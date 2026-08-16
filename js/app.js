@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initApp() {
+  if (typeof Gamification !== 'undefined') Gamification.init();
   document.getElementById('onboarding-overlay').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
   document.getElementById('bottom-nav').style.display = 'flex';
@@ -252,6 +253,22 @@ function loadDashboard() {
   const score = calcHealthScore(waterPct, calPct, actPct, takenMeds, meds.length);
   const scoreEl = document.getElementById('dash-health-score');
   Animate.scoreIn(scoreEl, score);
+
+  // Big Health Score card update
+  const hsValEl = document.getElementById('health-score-val');
+  const hsRingEl = document.getElementById('health-score-ring');
+  const hsMsgEl = document.getElementById('health-score-msg');
+  if (hsValEl) hsValEl.textContent = score;
+  if (hsRingEl) {
+    const offset = 283 - (283 * score / 100);
+    hsRingEl.style.strokeDashoffset = offset;
+  }
+  if (hsMsgEl) {
+    if (score >= 90) hsMsgEl.textContent = "Amazing job! You're crushing it today! 🔥";
+    else if (score >= 70) hsMsgEl.textContent = "Great progress! Keep going! 🚀";
+    else if (score >= 40) hsMsgEl.textContent = "You're getting there. Drink some water! 💧";
+    else hsMsgEl.textContent = "Log your stats to increase your score!";
+  }
 
   // Stat values — count up
   setTimeout(() => {
@@ -435,6 +452,7 @@ function addWater(ml) {
   const icons = { 150: 'droplet', 250: 'droplet', 350: 'droplet', 500: 'droplet', 750: 'droplet' };
   water.entries.push({ ml, time: formatTime12(), icon: 'droplet' });
   Storage.saveWater(water);
+  if (typeof Gamification !== 'undefined') Gamification.addXP(10, 'Drank water');
 
   const totalMl = water.entries.reduce((s, e) => s + e.ml, 0);
   Storage.saveWaterHistory(totalMl);
@@ -615,6 +633,7 @@ function toggleMedTaken(medId, time) {
   const taken = Storage.isMedTaken(medId, time);
   if (!taken) {
     Storage.markMedTaken(medId, time);
+    if (typeof Gamification !== 'undefined') Gamification.addXP(15, 'Took med');
     showToast('✅ Medicine marked as taken!');
   } else {
     // Untake
@@ -821,6 +840,8 @@ function saveMeal() {
 
   const totalCal = nut.meals.reduce((s, m) => s + (m.cal || 0), 0);
   Storage.saveCalHistory(totalCal);
+  if (typeof Gamification !== 'undefined') Gamification.addXP(20, 'Logged meal');
+
   closeModal('add-meal-modal');
   ['meal-name-input','meal-qty-input','meal-cal-input','meal-protein-input','meal-carbs-input','meal-fats-input']
     .forEach(id => document.getElementById(id).value = '');
@@ -923,6 +944,7 @@ function saveActivity() {
 
   const totalMin = act.sessions.reduce((s, a) => s + a.duration, 0);
   Storage.saveActHistory(totalMin);
+  if (typeof Gamification !== 'undefined') Gamification.addXP(Math.max(1, Math.round(duration)), 'Logged activity');
 
   closeModal('add-activity-modal');
   document.getElementById('act-duration-input').value = '';

@@ -226,6 +226,13 @@
         </button>
         <div class="topbar-title" id="topbar-title">Dashboard</div>
         <div class="topbar-actions">
+          <div class="gamification-badges">
+            <div class="streak-badge" title="Daily Streak"><span id="topbar-streak">🔥 0</span></div>
+            <div class="level-badge" title="Your Level">
+              <span id="topbar-level">🏆 Lvl 1</span>
+              <div class="level-progress-bar"><div class="level-fill" id="topbar-level-progress" style="width:0%"></div></div>
+            </div>
+          </div>
           <div class="date-chip" id="topbar-date"></div>
           <button class="notif-btn" id="notif-btn" onclick="requestNotificationPermission()" title="Enable notifications">
             <i data-lucide="bell" width="16" height="16"></i>
