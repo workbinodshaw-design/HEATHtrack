@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    HEALTHAI — CORE APP LOGIC
    Routing, state management, and all feature handlers
    ============================================================ */
@@ -634,7 +634,7 @@ function toggleMedTaken(medId, time) {
   if (!taken) {
     Storage.markMedTaken(medId, time);
     if (typeof Gamification !== 'undefined') Gamification.addXP(15, 'Took med');
-    showToast('✅ Medicine marked as taken!');
+    showToast('Medicine marked as taken!');
   } else {
     // Untake
     const meds = Storage.getMedications();
